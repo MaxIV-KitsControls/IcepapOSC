@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 - Add Manifest to include Markdown and Licence files on the package
 - Fix incompatibility with PyQt >= 5.12 (issue #22)
+- Fix installation dependencies.
 
 ## [0.7.1]
 
