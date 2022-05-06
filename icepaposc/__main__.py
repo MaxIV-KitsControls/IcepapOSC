@@ -45,6 +45,10 @@ def get_parser():
                        help='IcePAP port')
     parse.add_argument('-t', '--timeout', type=int, default=3,
                        help='Socket timeout')
+    parse.add_argument('--sigset', default='',
+                       help='.lst filename to import signals from')
+    parse.add_argument('--corr', default='', help='Default curves correction factors'
+                                        '--corr=\'pa,pb,ea,eb\'')
     parse.add_argument('-s', '--sig', nargs='*', default=[],
                        help='Preselected signals '
                             '<driver>:<signal name>:<Y-axis>')
@@ -60,9 +64,10 @@ def get_parser():
 
 def main():
     args = get_parser().parse_args()
+    print(args)
 
     app = QApplication(sys.argv)
-    win = WindowMain(args.host, args.port, args.timeout, args.sig, args.axis)
+    win = WindowMain(args.host, args.port, args.timeout, args.sig, args.axis, args.sigset, args.corr)
     win.show()
     sys.exit(app.exec_())
 
