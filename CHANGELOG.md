@@ -4,8 +4,44 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [0.9.x]
 
-## [0.8.X]
+### Added
+
+ - The option to define curves from the command line (--sig) was not working 
+ and now is fixed. 
+ - The option to define curves from a file (--sigset) was not working and 
+   now is fixed 
+ - 2 more vertical axes are available to allow for more flexibility with 
+   the autoranging when curves have too different ranges 
+ - Scale and offset factors apply to all the acquired data (and not to only 
+   from the point in time where they are set as before)
+ - Scale and offset factors can be set from the command line call (--corr)
+ - Ctrl+U allows to toggle whether the scale/offset factors are applied or not 
+ - Measure curve differences between two points in time. Double click in 
+   the graph fixes a second crosshair time location. Difference in the 
+   curves between that crosshair and the crosshair that follows the mouse 
+   are displayed in the top legend. 
+ - Local min/max in the legend. The time range for the min/max curve values 
+   in the legend is set by default to all acquired data. The time range can 
+   be set to a local range by the following sequence: double-click as 
+   described above to fix a cross-hair to one of the range-limits. Then 
+   click on the time location for the other range. The min/max values in 
+   the legend are updated for that local range only. A new click in the 
+   data widget will reset the time range to all the acquired data. 
+ - Ctrl+O allows to save directly to csv, the data within the time range 
+   shown in the display (min/max in the legend are updated to that time 
+   range as well). 
+ - Ctrl+I allows to define a text string added to the name of the .csv file 
+   saved via Ctrl+O 
+ - Ctrl+A/Z/E load several predefined curves sets (experimental)
+
+
+### Removed
+
+### Fixed
+
+## [0.8.2]
 
 ### Added
 - Include button to add velocities curves.
@@ -106,6 +142,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 [0.5.2]: https://github.com/ALBA-Synchrotron/IcepapOCS/compare/0.4.0...0.5.2
 [0.6.4]: https://github.com/ALBA-Synchrotron/IcepapOCS/compare/0.5.2...0.6.4
 [0.7.1]: https://github.com/ALBA-Synchrotron/IcepapOCS/compare/0.6.4...0.7.1
-[0.8.x]: https://github.com/ALBA-Synchrotron/IcepapOCS/compare/0.7.1...HEAD
-
+[0.8.2]: https://github.com/ALBA-Synchrotron/IcepapOCS/compare/0.7.1...0.8.2
+[0.9.x]: https://github.com/ALBA-Synchrotron/IcepapOCS/compare/0.8.2...HEAD
 
