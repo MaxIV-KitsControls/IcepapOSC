@@ -55,10 +55,12 @@ def get_parser():
                        help='Socket timeout')
     parse.add_argument('--sigset', default='',
                        help='.lst filename to import signals from')
-    parse.add_argument('--corr', default='', help='Default curves correction factors'
-                                        '--corr=\'pa,pb,ea,eb\'')
-    parse.add_argument('--yrange', default='', help='Default yaxes with forced autorange when slotted yview'
-                                        '--yrange=\'1,3,5\'')
+    parse.add_argument('--corr', default='',
+                       help='Default curves correction factors'
+                            '--corr=\'pa,pb,ea,eb\'')
+    parse.add_argument('--yrange', default='',
+                       help='Default yaxes with forced autorange when '
+                            'slotted yview --yrange=\'1,3,5\'')
     parse.add_argument('-s', '--sig', nargs='*', default=[],
                        help='Preselected signals '
                             '<driver>:<signal name>:<Y-axis>')
@@ -77,7 +79,8 @@ def main():
     print(args)
 
     app = QApplication(sys.argv)
-    win = WindowMain(args.host, args.port, args.timeout, args.sig, args.axis, args.sigset, args.corr, args.yrange)
+    win = WindowMain(args.host, args.port, args.timeout, args.sig,
+                     args.axis, args.sigset, args.corr, args.yrange)
     win.show()
     sys.exit(app.exec_())
 
