@@ -4,7 +4,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [0.9.x]
+## [0.10.x]
+
+### Added
+ - Reset X button is overloaded and switches behaviour between autopan and 
+ autoscale. 
+ - Reset Y button is overloaded and switches now behaviour between 'autoscale 
+ all y axes' and 'divide vertical space between yaxes and setRange 
+ accordingly' (try yourself).
+ - The hotkeys are now available via icepaposc -h
+ 
+
+### Removed
+
+### Fixed
+
+## [0.9.0]
 
 ### Added
 
