@@ -34,11 +34,10 @@ from .settings import Settings
 from .axis_time import AxisTime
 from .curve_item import CurveItem
 
-
 class WindowMain(QtWidgets.QMainWindow):
     """A dialog for plotting IcePAP signals."""
 
-    def __init__(self, host, port, timeout, siglist, selected_driver=None, sigset=None, corr=None):
+    def __init__(self, host, port, timeout, siglist, selected_driver=None, sigset=None, corr=None, yrange=None):
         """
         Initializes an instance of class WindowMain.
 
@@ -107,6 +106,7 @@ class WindowMain(QtWidgets.QMainWindow):
                            pg.ViewBox(),
                            pg.ViewBox(), ##
                            pg.ViewBox(), ##
+                           pg.ViewBox(), ##
                            pg.ViewBox()]
         self.ui.vloCurves.setDirection(QtWidgets.QBoxLayout.BottomToTop)
         self.ui.vloCurves.addWidget(self.plot_widget)
@@ -125,18 +125,29 @@ class WindowMain(QtWidgets.QMainWindow):
         self.view_boxes[2].disableAutoRange(axis=self.view_boxes[2].XAxis)
         self.view_boxes[3].disableAutoRange(axis=self.view_boxes[3].XAxis) ##
         self.view_boxes[4].disableAutoRange(axis=self.view_boxes[4].XAxis) ##
+        self.view_boxes[5].disableAutoRange(axis=self.view_boxes[5].XAxis) ##
         self._reset_x()
+        #self._enable_x_autorange()    
 
-        # Set up the three Y-axes.
+        # Set up the Y-axes.
+        self.split_viewbox_enabled = False
+        self.force_autorange=[]
+        if yrange != None and yrange !='' :
+            yrange_s = yrange.split(',')
+            for a in yrange_s:
+                self.force_autorange.append(int(a))
+                print(self.force_autorange)
         self._plot_item.showAxis('right')
         self._plot_item.scene().addItem(self.view_boxes[1])
         self._plot_item.scene().addItem(self.view_boxes[2])
         self._plot_item.scene().addItem(self.view_boxes[3]) ##
+        self._plot_item.scene().addItem(self.view_boxes[4]) ##
         ax3 = pg.AxisItem(orientation='right', linkView=self.view_boxes[2])
         ax4 = pg.AxisItem(orientation='right', linkView=self.view_boxes[3]) ##
         ax5 = pg.AxisItem(orientation='right', linkView=self.view_boxes[4]) ##
+        ax6 = pg.AxisItem(orientation='right', linkView=self.view_boxes[5]) ##
         self.axes = [self._plot_item.getAxis('left'),
-                     self._plot_item.getAxis('right'), ax3, ax4, ax5] ##
+                     self._plot_item.getAxis('right'), ax3, ax4, ax5, ax6] ##
         self.axes[1].linkToView(self.view_boxes[1])
         self.view_boxes[1].setXLink(self.view_boxes[0])
         self.view_boxes[2].setXLink(self.view_boxes[0])
@@ -145,6 +156,7 @@ class WindowMain(QtWidgets.QMainWindow):
         self._plot_item.layout.addItem(self.axes[2], 2, 3)
         self._plot_item.layout.addItem(self.axes[3], 2, 4) ##
         self._plot_item.layout.addItem(self.axes[4], 2, 5) ##
+        self._plot_item.layout.addItem(self.axes[5], 2, 6) ##
         self._plot_item.hideButtons()
         self._enable_auto_range_y()
 
@@ -229,6 +241,7 @@ class WindowMain(QtWidgets.QMainWindow):
         self._remove_empty_y_axis(3) ##
         self._remove_empty_y_axis(4) ##
         self._remove_empty_y_axis(5) ##This is causing an issue
+        self._remove_empty_y_axis(6) ##This is causing an issue
         
         #Corrector factors for POS and ENC. Offer possibility to switch between default (steps) or ui (units)
         self.corr_factors_default = [1, 0, 1, 0]
@@ -236,7 +249,6 @@ class WindowMain(QtWidgets.QMainWindow):
         self.use_default_corr_factors = True
         self.corr_factors_ui = [1, 0, 1, 0]
         self.last_time_value = 0
-
 
     def _fill_combo_box_driver_ids(self, selected_driver):
         driver_ids = self.collector.get_available_drivers()
@@ -306,7 +318,13 @@ class WindowMain(QtWidgets.QMainWindow):
         self.shortcut.activated.connect(self._toggle_corr_factors)
         self.shortcut = QShortcut(QKeySequence("Ctrl+I"), self)
         self.shortcut.activated.connect(self._get_filename_string)
-        
+        self.shortcut = QShortcut(QKeySequence("Ctrl+D"), self)
+        self.shortcut.activated.connect(self._enable_auto_range_y)
+        self.shortcut = QShortcut(QKeySequence("Ctrl+R"), self)
+        self.shortcut.activated.connect(self._zoom_in_x)
+        self.shortcut = QShortcut(QKeySequence("Ctrl+T"), self)
+        self.shortcut.activated.connect(self._zoom_out_x)
+
         self.ui.txt_poscorr_a.editingFinished.connect(self._txt_poscorr_a_focus_lost)
         self.ui.txt_poscorr_b.editingFinished.connect(self._txt_poscorr_b_focus_lost)
         self.ui.txt_enccorr_a.editingFinished.connect(self._txt_enccorr_a_focus_lost)
@@ -335,6 +353,7 @@ class WindowMain(QtWidgets.QMainWindow):
         self.view_boxes[2].setGeometry(self.view_boxes[0].sceneBoundingRect())
         self.view_boxes[3].setGeometry(self.view_boxes[0].sceneBoundingRect()) ##
         self.view_boxes[4].setGeometry(self.view_boxes[0].sceneBoundingRect()) ##
+        self.view_boxes[5].setGeometry(self.view_boxes[0].sceneBoundingRect()) ##
         self.view_boxes[1].linkedViewChanged(self.view_boxes[0],
                                              self.view_boxes[1].XAxis)
         self.view_boxes[2].linkedViewChanged(self.view_boxes[0],
@@ -343,6 +362,8 @@ class WindowMain(QtWidgets.QMainWindow):
                                              self.view_boxes[3].XAxis)  ##
         self.view_boxes[4].linkedViewChanged(self.view_boxes[0],
                                              self.view_boxes[4].XAxis)  ##
+        self.view_boxes[5].linkedViewChanged(self.view_boxes[0],
+                                             self.view_boxes[5].XAxis)  ##
 
     def _update_button_status(self):
         val = self.ui.lvActiveSig.count() == 0
@@ -358,7 +379,7 @@ class WindowMain(QtWidgets.QMainWindow):
 
     def _update_plot_axes_labels(self):
         #txt = ['', '', '']
-        txt = ['', '', '', '', '']
+        txt = ['', '', '', '', '', ''] ##
         for ci in self.curve_items:
             t = "<span style='font-size: 8pt; " \
                 "color: {};'>{}</span>".format(ci.color.name(), ci.signature)
@@ -672,24 +693,37 @@ class WindowMain(QtWidgets.QMainWindow):
             QtCore.Qt.SolidLine, '')
         self._add_signal(drv_addr, 'VelMotor', 5, self.palette_colours[4], 
             QtCore.Qt.SolidLine, '')
-        self._add_signal(drv_addr, 'StatReady', 3, self.palette_colours[4], 
+        self._add_signal(drv_addr, 'EncTgtenc', 6, self.palette_colours[6], 
+            QtCore.Qt.SolidLine, '')            
+        self._add_signal(drv_addr, 'StatMoving', 3, self.palette_colours[0], 
+            QtCore.Qt.SolidLine, '')
+        self._add_signal(drv_addr, 'StatSettling', 3, self.palette_colours[5], 
+            QtCore.Qt.SolidLine, '')
+        self._add_signal(drv_addr, 'StatStopcode', 3, self.palette_colours[1], 
             QtCore.Qt.DotLine, '')
-        self._add_signal(drv_addr, 'StatMoving', 3, self.palette_colours[5], 
-            QtCore.Qt.DotLine, '')
-        self._add_signal(drv_addr, 'StatSettling', 3, self.palette_colours[6], 
-            QtCore.Qt.DotLine, '')
-        self._add_signal(drv_addr, 'StatOutofwin', 3, self.palette_colours[7], 
-            QtCore.Qt.DotLine, '')
-        self._add_signal(drv_addr, 'StatWarning', 3, self.palette_colours[8], 
-            QtCore.Qt.DotLine, '')
-        self._add_signal(drv_addr, 'StatStopcode', 3, self.palette_colours[9], 
-            QtCore.Qt.DotLine, '')
+        #self._add_signal(drv_addr, 'StatReady', 3, self.palette_colours[4], 
+        #    QtCore.Qt.DotLine, '')
+        #self._add_signal(drv_addr, 'StatMoving', 3, self.palette_colours[5], 
+        #    QtCore.Qt.DotLine, '')
+        #self._add_signal(drv_addr, 'StatSettling', 3, self.palette_colours[6], 
+        #    QtCore.Qt.DotLine, '')
+        #self._add_signal(drv_addr, 'StatOutofwin', 3, self.palette_colours[7], 
+        #    QtCore.Qt.DotLine, '')
+        #self._add_signal(drv_addr, 'StatWarning', 3, self.palette_colours[8], 
+        #    QtCore.Qt.DotLine, '')
+        #self._add_signal(drv_addr, 'StatStopcode', 3, self.palette_colours[1], 
+        #    QtCore.Qt.DotLine, '')
         self.view_boxes[0].enableAutoRange(axis=self.view_boxes[0].YAxis)
         self.view_boxes[1].disableAutoRange(axis=self.view_boxes[1].YAxis)
         self.view_boxes[1].setYRange(-30, 70, padding=0)
         self.view_boxes[2].disableAutoRange(axis=self.view_boxes[2].YAxis)
         self.view_boxes[2].setYRange(-1, 20, padding=0)
+        self._do_black_background()
+        self.force_autorange = [0, 5]
+        self._reset_x()
+        #self._enable_x_autorange()
         self.hotkey_filename = "Closed_loop_plot"
+        self._goto_now()
 
     def _signals_currents(self):
         """Display a specific set of curves."""
@@ -697,20 +731,24 @@ class WindowMain(QtWidgets.QMainWindow):
         drv_addr = int(self.ui.cbDrivers.currentText())
         self._add_signal(drv_addr, 'PosAxis', 1, QtGui.QColor(
             255, 0, 0), QtCore.Qt.SolidLine, '')
-        self._add_signal(drv_addr, 'PosTgtenc', 1, QtGui.QColor(
-            255, 192, 203), QtCore.Qt.SolidLine, '')
-        self._add_signal(drv_addr, 'MeasI', 3, QtGui.QColor(
-            0, 255, 0), QtCore.Qt.SolidLine, '')
-        self._add_signal(drv_addr, 'VelCurrent', 2, QtGui.QColor(
-            0, 127, 255), QtCore.Qt.SolidLine, '')
-        self._add_signal(drv_addr, 'VelMotor', 2, QtGui.QColor(
-            255, 255, 0), QtCore.Qt.SolidLine, '')
+        self._add_signal(drv_addr, 'EncTgtenc', 5, self.palette_colours[6], QtCore.Qt.SolidLine, '')
+        self._add_signal(drv_addr, 'DifAxTgtenc', 4, self.palette_colours[1], 
+            QtCore.Qt.SolidLine, '')
+        self._add_signal(drv_addr, 'MeasI', 3, self.palette_colours[7],
+            QtCore.Qt.SolidLine, '')
+        self._add_signal(drv_addr, 'VelCurrent', 2, self.palette_colours[3], QtCore.Qt.SolidLine, '')
+        self._add_signal(drv_addr, 'VelMotor', 2, self.palette_colours[4], QtCore.Qt.SolidLine, '')
         # Ajust plot axis
         self.view_boxes[0].enableAutoRange(axis=self.view_boxes[0].YAxis)
         self.view_boxes[1].enableAutoRange(axis=self.view_boxes[1].YAxis)
         self.view_boxes[2].disableAutoRange(axis=self.view_boxes[2].YAxis)
-        self.view_boxes[2].setYRange(-0.5, 17.5, padding=0)
+        self.view_boxes[2].setYRange(-1, 17.5, padding=0)
+        self.force_autorange = [0, 4]
+        self._do_black_background()
+        self._reset_x()
+        #self._enable_x_autorange()
         self.hotkey_filename = "Currents_plot"
+        self._goto_now()
 
     def _signals_closed_loop_dynamic(self):
         """Display a specific set of curves."""
@@ -720,7 +758,7 @@ class WindowMain(QtWidgets.QMainWindow):
             QtCore.Qt.SolidLine, '')
         self._add_signal(drv_addr, 'DifAxTgtenc', 2, self.palette_colours[1], 
             QtCore.Qt.SolidLine, '')
-        self._add_signal(drv_addr, 'DifAxMotor', 2, self.palette_colours[2], 
+        self._add_signal(drv_addr, 'DifAxMotor', 5, self.palette_colours[2], 
             QtCore.Qt.SolidLine, '')
         self._add_signal(drv_addr, 'VelCurrent', 4, self.palette_colours[3],
             QtCore.Qt.SolidLine, '')
@@ -728,19 +766,13 @@ class WindowMain(QtWidgets.QMainWindow):
             QtCore.Qt.SolidLine, '')
         self._add_signal(drv_addr, 'MeasI', 3, self.palette_colours[5], 
             QtCore.Qt.SolidLine, '')            
-        self._add_signal(drv_addr, 'EncTgtenc', 5, self.palette_colours[6], 
+        self._add_signal(drv_addr, 'EncTgtenc', 6, self.palette_colours[6], 
             QtCore.Qt.SolidLine, '')            
-        self._add_signal(drv_addr, 'StatReady', 3, self.palette_colours[4], 
-            QtCore.Qt.DotLine, '')
-        self._add_signal(drv_addr, 'StatMoving', 3, self.palette_colours[5], 
-            QtCore.Qt.DotLine, '')
-        self._add_signal(drv_addr, 'StatSettling', 3, self.palette_colours[6], 
-            QtCore.Qt.DotLine, '')
-        self._add_signal(drv_addr, 'StatOutofwin', 3, self.palette_colours[7], 
-            QtCore.Qt.DotLine, '')
-        self._add_signal(drv_addr, 'StatWarning', 3, self.palette_colours[8], 
-            QtCore.Qt.DotLine, '')
-        self._add_signal(drv_addr, 'StatStopcode', 3, self.palette_colours[9], 
+        self._add_signal(drv_addr, 'StatMoving', 3, self.palette_colours[0], 
+            QtCore.Qt.SolidLine, '')
+        self._add_signal(drv_addr, 'StatSettling', 3, self.palette_colours[5], 
+            QtCore.Qt.DashLine, '')
+        self._add_signal(drv_addr, 'StatStopcode', 3, self.palette_colours[1], 
             QtCore.Qt.DotLine, '')
         # Ajust plot axis
         self.view_boxes[0].enableAutoRange(axis=self.view_boxes[0].YAxis)
@@ -748,9 +780,13 @@ class WindowMain(QtWidgets.QMainWindow):
         self.view_boxes[3].enableAutoRange(axis=self.view_boxes[3].YAxis)
         self.view_boxes[4].enableAutoRange(axis=self.view_boxes[4].YAxis)
         self.view_boxes[2].disableAutoRange(axis=self.view_boxes[2].YAxis)
-        self.view_boxes[2].setYRange(-0.5, 17.5, padding=0)
+        self.view_boxes[2].setYRange(-1, 17.5, padding=0)
         self.hotkey_filename = "Closed_loopd_plot"
+        self.force_autorange = [0, 5]
         self._do_black_background()
+        self._reset_x()
+        #self._enable_x_autorange()
+        self._goto_now()
 
     def _signals_closed_loop_static(self):
         """Display a specific set of curves."""
@@ -766,15 +802,15 @@ class WindowMain(QtWidgets.QMainWindow):
             QtCore.Qt.SolidLine, '')            
         self._add_signal(drv_addr, 'StatReady', 3, self.palette_colours[4], 
             QtCore.Qt.DotLine, '')
-        self._add_signal(drv_addr, 'StatMoving', 3, self.palette_colours[5], 
+        self._add_signal(drv_addr, 'StatMoving', 3, self.palette_colours[0], 
             QtCore.Qt.DotLine, '')
-        self._add_signal(drv_addr, 'StatSettling', 3, self.palette_colours[6], 
+        self._add_signal(drv_addr, 'StatSettling', 3, self.palette_colours[5], 
             QtCore.Qt.DotLine, '')
         self._add_signal(drv_addr, 'StatOutofwin', 3, self.palette_colours[7], 
             QtCore.Qt.DotLine, '')
         self._add_signal(drv_addr, 'StatWarning', 3, self.palette_colours[8], 
             QtCore.Qt.DotLine, '')
-        self._add_signal(drv_addr, 'StatStopcode', 3, self.palette_colours[9], 
+        self._add_signal(drv_addr, 'StatStopcode', 3, self.palette_colours[1], 
             QtCore.Qt.DotLine, '')
         self._add_signal(drv_addr, 'MeasI', 3, self.palette_colours[10], 
             QtCore.Qt.SolidLine, '')            
@@ -783,9 +819,13 @@ class WindowMain(QtWidgets.QMainWindow):
         self.view_boxes[3].enableAutoRange(axis=self.view_boxes[3].YAxis)
         self.view_boxes[4].enableAutoRange(axis=self.view_boxes[4].YAxis)
         self.view_boxes[2].disableAutoRange(axis=self.view_boxes[2].YAxis)
-        self.view_boxes[2].setYRange(-0.5, 17.5, padding=0)
+        self.view_boxes[2].setYRange(-1, 17.5, padding=0)
         self.hotkey_filename = "Closed_loops_plot"
+        self.force_autorange = [0, 4]
         self._do_black_background()
+        self._reset_x()
+        #self._enable_x_autorange()
+        self._goto_now()
         
     def _signals_open_loop(self):
         """Display a specific set of curves."""
@@ -797,20 +837,24 @@ class WindowMain(QtWidgets.QMainWindow):
             QtCore.Qt.SolidLine, '')
         self._add_signal(drv_addr, 'EncTgtenc', 4, self.palette_colours[2], 
             QtCore.Qt.SolidLine, '')            
-        self._add_signal(drv_addr, 'StatWarning', 3, self.palette_colours[3], 
+        self._add_signal(drv_addr, 'StatWarning', 3, self.palette_colours[6], 
             QtCore.Qt.DotLine, '')
-        self._add_signal(drv_addr, 'MeasI', 3, self.palette_colours[4], 
+        self._add_signal(drv_addr, 'MeasI', 3, self.palette_colours[5], 
             QtCore.Qt.DotLine, '')
-        self._add_signal(drv_addr, 'VelMotor', 5, self.palette_colours[5], 
+        self._add_signal(drv_addr, 'VelMotor', 5, self.palette_colours[4], 
             QtCore.Qt.SolidLine, '')   #Not necessary 
         self.view_boxes[0].enableAutoRange(axis=self.view_boxes[0].YAxis)
         self.view_boxes[1].enableAutoRange(axis=self.view_boxes[1].YAxis)
         self.view_boxes[3].enableAutoRange(axis=self.view_boxes[3].YAxis)
         self.view_boxes[4].enableAutoRange(axis=self.view_boxes[4].YAxis)
         self.view_boxes[2].disableAutoRange(axis=self.view_boxes[2].YAxis)
-        self.view_boxes[2].setYRange(-0.5, 17.5, padding=0)
+        self.view_boxes[2].setYRange(-1, 17.5, padding=0)
+        self.force_autorange = [0, 3]
         self.hotkey_filename = "Open_loop_plot"
         self._do_black_background()
+        self._reset_x()
+        #self._enable_x_autorange()
+        self._goto_now()
 
         
     def _signals_velocities(self):
@@ -819,24 +863,24 @@ class WindowMain(QtWidgets.QMainWindow):
         drv_addr = int(self.ui.cbDrivers.currentText())
         self._add_signal(drv_addr, 'PosAxis', 1, QtGui.QColor(
             255, 0, 0), QtCore.Qt.SolidLine, '')
-        self._add_signal(drv_addr, 'PosTgtenc', 1, QtGui.QColor(
-            255, 192, 203), QtCore.Qt.SolidLine, '')
         self._add_signal(drv_addr, 'DifAxMotor', 2, QtGui.QColor(
             0, 127, 255), QtCore.Qt.SolidLine, '')
         self._add_signal(drv_addr, 'DifAxTgtenc', 2, QtGui.QColor(
             0, 255, 0), QtCore.Qt.SolidLine, '')
-        self._add_signal(drv_addr, 'VelCurrent', 3, QtGui.QColor(
-            0, 127, 255), QtCore.Qt.SolidLine, '')
-        self._add_signal(drv_addr, 'VelMotor', 3, QtGui.QColor(
-            255, 255, 0), QtCore.Qt.SolidLine, '')
+        self._add_signal(drv_addr, 'VelCurrent', 4, self.palette_colours[3], QtCore.Qt.SolidLine, '')
+        self._add_signal(drv_addr, 'VelMotor', 4, self.palette_colours[4], QtCore.Qt.SolidLine, '')
         # Ajust plot axis
         self.view_boxes[0].enableAutoRange(axis=self.view_boxes[0].YAxis)
         self.view_boxes[1].enableAutoRange(axis=self.view_boxes[1].YAxis)
         #self.view_boxes[2].disableAutoRange(axis=self.view_boxes[2].YAxis)
         #self.view_boxes[2].setYRange(-0.5, 17.5, padding=0)
-        self.view_boxes[2].enableAutoRange(axis=self.view_boxes[2].YAxis)
+        self.view_boxes[3].enableAutoRange(axis=self.view_boxes[3].YAxis)
+        self._do_black_background()
+        self.force_autorange = [0]
         self.hotkey_filename = "Velocities_plot"
-
+        self._reset_x()
+        #self._enable_x_autorange()
+        self._goto_now()
 
     def _signals_target(self):
         """Display a specific set of curves."""
@@ -844,15 +888,19 @@ class WindowMain(QtWidgets.QMainWindow):
         drv_addr = int(self.ui.cbDrivers.currentText())
         self._add_signal(drv_addr, 'PosAxis', 1, QtGui.QColor(
             255, 0, 0), QtCore.Qt.SolidLine, '')
-        self._add_signal(drv_addr, 'PosTgtenc', 1, QtGui.QColor(
-            255, 192, 203), QtCore.Qt.SolidLine, '')
         self._add_signal(drv_addr, 'DifAxTgtenc', 2, QtGui.QColor(
             0, 255, 0), QtCore.Qt.SolidLine, '')
-        self._add_signal(drv_addr, 'DifAxMotor', 2, QtGui.QColor(
-            0, 127, 255), QtCore.Qt.SolidLine, '')
-        self._add_signal(drv_addr, 'EncTgtenc', 3, QtGui.QColor(
+        self._add_signal(drv_addr, 'EncTgtenc', 4, QtGui.QColor(
             255, 255, 0), QtCore.Qt.SolidLine, '')
+        self._add_signal(drv_addr, 'StatWarning', 3, self.palette_colours[8], 
+            QtCore.Qt.DotLine, '')
+        self.view_boxes[2].setYRange(-1, 17.5, padding=0)
+        self.force_autorange = [0, 3]
         self.hotkey_filename = "Target_plot"
+        self._do_black_background()
+        self._reset_x()
+        #self._enable_x_autorange()
+        self._goto_now()
 
     def _clear_all(self):
         """Clear all the displayed curves."""
@@ -912,6 +960,12 @@ class WindowMain(QtWidgets.QMainWindow):
                                                      ci.symbol)
                     f.write(line)
 
+    def x_autorange_enabled(self):
+        return self.view_boxes[0].state['autoRange'][0]
+
+    def _enable_x_autorange(self):
+        self.view_boxes[0].enableAutoRange(axis=self.view_boxes[0].XAxis)
+
     def _reset_x(self):
         """
         Reset the length of the X axis to
@@ -919,15 +973,31 @@ class WindowMain(QtWidgets.QMainWindow):
         """
         now = self.collector.get_current_time()
         start = now - self.settings.default_x_axis_len
-        self.view_boxes[0].setXRange(start, now, padding=0)
+        if not self.x_autorange_enabled(): #nge_enabled:
+            self.view_boxes[0].enableAutoRange(axis=self.view_boxes[0].XAxis)
+        else:
+            x_min = self.view_boxes[0].viewRange()[0][0]
+            x_max = self.view_boxes[0].viewRange()[0][1]
+            if x_max - x_min < self.settings.default_x_axis_len:
+                self.view_boxes[0].setXRange(start, now, padding=0)
+            else:
+                self.view_boxes[0].setXRange(x_min, now, padding=0)
+            #self._enable_x_autorange()
 
     def _enable_auto_range_y(self):
-        self.view_boxes[0].enableAutoRange(axis=self.view_boxes[0].YAxis)
-        self.view_boxes[1].enableAutoRange(axis=self.view_boxes[1].YAxis)
-        #Keep 2 for status/currents that don't need often autoranging
-        #self.view_boxes[2].enableAutoRange(axis=self.view_boxes[2].YAxis) 
-        self.view_boxes[3].enableAutoRange(axis=self.view_boxes[3].YAxis)##
-        self.view_boxes[4].enableAutoRange(axis=self.view_boxes[4].YAxis)##
+        if self.split_viewbox_enabled: 
+            #for i in range(0, len(self.view_boxes)):
+            #    #Keep 2 for status/currents that don't need often autoranging
+            #    #if i != 2:
+            #    #    self.view_boxes[i].autoRange()
+            self._split_viewbox_by_yaxis()
+            self.split_viewbox_enabled = False
+        else:
+            for i in range(0, len(self.view_boxes)):
+                #Keep 2 for status/currents that don't need often autoranging
+                if i != 2:
+                    self.view_boxes[i].enableAutoRange(axis=self.view_boxes[i].YAxis)
+            self.split_viewbox_enabled = True 
 
     def _pause_x_axis(self):
         """Freeze the X axis."""
@@ -939,12 +1009,42 @@ class WindowMain(QtWidgets.QMainWindow):
             self.ui.btnPause.setText('Run')
         self.ui.btnClear.setDisabled(self._paused)
 
+    def _zoom_in_x(self):
+        """Pan X axis to display newest values."""
+        x_min = self.view_boxes[0].viewRange()[0][0]
+        x_max = self.view_boxes[0].viewRange()[0][1]
+        #now = self.collector.get_current_time()
+        if x_max < self.now:
+            x_center = (x_min + x_max)/2
+            x_min_new = x_center - (x_max - x_min)/4
+            x_max_new = x_center + (x_max - x_min)/4
+        else:
+            x_min_new = x_max - (x_max - x_min)/2
+            x_max_new = x_max
+        self.view_boxes[0].setXRange(x_min_new, x_max_new, padding=0)
+
+    def _zoom_out_x(self):
+        """Pan X axis to display newest values."""
+        x_min = self.view_boxes[0].viewRange()[0][0]
+        x_max = self.view_boxes[0].viewRange()[0][1]
+        #now = self.collector.get_current_time()
+        if x_max < self.now:
+            x_center = (x_min + x_max)/2
+            x_min_new = x_center - (x_max - x_min)
+            x_max_new = x_center + (x_max - x_min)
+        else:
+            x_min_new = x_max - (x_max - x_min)*2
+            x_max_new = x_max
+        self.view_boxes[0].setXRange(x_min_new, x_max_new, padding=0)
+
     def _goto_now(self):
         """Pan X axis to display newest values."""
         now = self.collector.get_current_time()
         x_min = self.view_boxes[0].viewRange()[0][0]
         x_max = self.view_boxes[0].viewRange()[0][1]
         self.view_boxes[0].setXRange(now - (x_max - x_min), now, padding=0)
+        #if not self.x_autorange_enabled():
+        #    self.view_boxes[0].enableAutoRange(axis=self.view_boxes[0].XAxis)
 
     def enable_action(self, enable=True):
         """Enables or disables menu item File|Settings."""
@@ -955,7 +1055,7 @@ class WindowMain(QtWidgets.QMainWindow):
             unitstr = "st"
         else:
             unitstr = "u"
-        filename1 = "{:03d}_{}_{}_{}.csv".format(int(self.ui.cbDrivers.currentText()), time.strftime("%y%m%d_%H%M%S", time.localtime()), self.hotkey_filename, unitstr)
+        filename1 = "{}_{:03d}_{}_{}.csv".format(time.strftime("%y%m%d_%H%M%S", time.localtime()), int(self.ui.cbDrivers.currentText()), self.hotkey_filename, unitstr)
         QApplication.clipboard().setText(filename1)
         #print(filename1)
         user_path = os.path.expanduser("~")
@@ -1142,8 +1242,11 @@ class WindowMain(QtWidgets.QMainWindow):
         # Update the X-axis.
         now_in_range = self.now <= x_max
         self.now = self.collector.get_current_time()
-        if now_in_range:
-            self.view_boxes[0].setXRange(self.now - (x_max - x_min),
+        if not self.x_autorange_enabled():
+            if now_in_range:  
+            #if now_in_range:
+            #if self.x_autorange_enabled():  
+                self.view_boxes[0].setXRange(self.now - (x_max - x_min),
                                          self.now,
                                          padding=0)
         self.ui.btnNow.setDisabled(now_in_range)
@@ -1272,6 +1375,51 @@ class WindowMain(QtWidgets.QMainWindow):
             # X axis
             self.view_boxes[0].setXRange(c-d, c+d, padding=0)
 
+    def enable_split_viewbox(self):
+        self.split_viewbox_enabled = not self.split_viewbox_enabled
+
+    def _split_viewbox_by_yaxis(self):
+        num_viewboxes = len(self.view_boxes)-1 #skip yaxes 3
+        vertical_slots = len(self.view_boxes) -1
+        fill_factor = 0.1 
+        for yaxis in range(0, 2):
+            [amin, amax] = self.view_boxes[yaxis].viewRange()[1]
+            old_center = amin + (amax-amin)/2
+            old_range = amax-amin
+            range_slots = (amax - amin)*vertical_slots
+            if range_slots == 0:
+                range_slots = 1 * vertical_slots 
+            slots_above = (1 + 2 * yaxis) 
+            slots_below = (2 * vertical_slots - yaxis * 2 - 1)
+            new_amax = old_center + slots_above * fill_factor * range_slots  
+            new_amin = old_center - slots_below * fill_factor * range_slots  
+            #print(yaxis, fill_factor, new_amin, new_amax, amin, amax, amax-amin, range_slots, range_slots*fill_factor, old_center )
+            self.view_boxes[yaxis].setYRange( new_amin, new_amax, padding = 0)
+            #self.view_boxes[yaxis].setAutoPan(y=True)
+            #self.view_boxes[yaxis].enableAutoRange(
+            #    axis=self.view_boxes[yaxis].YAxis)
+        for yaxis in range(3, len(self.view_boxes)):
+            [amin, amax] = self.view_boxes[yaxis].viewRange()[1]
+            old_center = amin + (amax-amin)/2
+            old_range = amax-amin
+            range_slots = (amax - amin)*vertical_slots
+            if range_slots == 0:
+                range_slots = 1 * vertical_slots 
+            slots_above = (1 + 2 * (yaxis-1)) 
+            slots_below = (2 * vertical_slots - (yaxis-1) * 2 - 1)
+            new_amax = old_center + slots_above * fill_factor * range_slots  
+            new_amin = old_center - slots_below * fill_factor * range_slots  
+            #print(yaxis, fill_factor, new_amin, new_amax, amin, amax, amax-amin, range_slots, range_slots*fill_factor, old_center )
+            self.view_boxes[yaxis].setYRange( new_amin, new_amax, padding = 0)
+            #self.view_boxes[yaxis].setAutoPan(y=True)
+            #self.view_boxes[yaxis].enableAutoRange(
+            #    axis=self.view_boxes[yaxis].YAxis)
+        for n in self.force_autorange:
+            self.view_boxes[n].enableAutoRange(
+                axis=self.view_boxes[n].YAxis)
+         
+
+
     def _chg_axis_scale(self, scalefact):
         axis, amin, amax = self._get_axis_range()
         c = (amin+amax)/2
@@ -1292,3 +1440,6 @@ class WindowMain(QtWidgets.QMainWindow):
             # X axis
             [amin, amax] = self.view_boxes[0].viewRange()[0]
         return axis, amin, amax
+
+
+

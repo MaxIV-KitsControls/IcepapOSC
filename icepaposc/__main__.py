@@ -27,6 +27,14 @@ from . import version
 def get_parser():
     desc = 'IcePAP Oscilloscope Application, base on ethernet communication\n'
     desc += 'Version: {}.\n'.format(version)
+    desc += '\n'
+    desc += 'Hotkeys:\n'
+    desc += 'Ctrl+O: Save contets to csv format file\n'
+    desc += 'Ctrl+U: Toggle correction factors on and off\n'
+    desc += 'Ctrl+I: Input dialog for csv file name\n'
+    desc += 'Ctrl+D: Enable autorange on Ys\n'
+    desc += 'Ctrl+T: Zoom out time axis\n'
+    desc += 'Ctrl+R: Zoom in time axis\n'
     epi = 'Documentation: https://alba-synchrotron.github.io/pyIcePAP-doc/\n'
     epi += 'Copyright 2017:\n' \
            '   MAX IV Laboratory, Lund, Sweden\n' \
@@ -49,6 +57,8 @@ def get_parser():
                        help='.lst filename to import signals from')
     parse.add_argument('--corr', default='', help='Default curves correction factors'
                                         '--corr=\'pa,pb,ea,eb\'')
+    parse.add_argument('--yrange', default='', help='Default yaxes with forced autorange when slotted yview'
+                                        '--yrange=\'1,3,5\'')
     parse.add_argument('-s', '--sig', nargs='*', default=[],
                        help='Preselected signals '
                             '<driver>:<signal name>:<Y-axis>')
@@ -67,7 +77,7 @@ def main():
     print(args)
 
     app = QApplication(sys.argv)
-    win = WindowMain(args.host, args.port, args.timeout, args.sig, args.axis, args.sigset, args.corr)
+    win = WindowMain(args.host, args.port, args.timeout, args.sig, args.axis, args.sigset, args.corr, args.yrange)
     win.show()
     sys.exit(app.exec_())
 
