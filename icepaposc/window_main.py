@@ -311,20 +311,22 @@ class WindowMain(QtWidgets.QMainWindow):
         self.shortcut.activated.connect(self._save_window_content_to_file)
         self.shortcut = QShortcut(QKeySequence("Ctrl+Z"), self)
         self.shortcut.activated.connect(self._signals_closed_loop_dynamic)
-        self.shortcut = QShortcut(QKeySequence("Ctrl+A"), self)
-        self.shortcut.activated.connect(self._signals_closed_loop_static)
-        self.shortcut = QShortcut(QKeySequence("Ctrl+E"), self)
-        self.shortcut.activated.connect(self._signals_open_loop)
+        #self.shortcut = QShortcut(QKeySequence("Ctrl+A"), self)
+        #self.shortcut.activated.connect(self._signals_closed_loop_static)
+        #self.shortcut = QShortcut(QKeySequence("Ctrl+E"), self)
+        #self.shortcut.activated.connect(self._signals_open_loop)
         self.shortcut = QShortcut(QKeySequence("Ctrl+U"), self)
         self.shortcut.activated.connect(self._toggle_corr_factors)
         self.shortcut = QShortcut(QKeySequence("Ctrl+I"), self)
         self.shortcut.activated.connect(self._get_filename_string)
-        self.shortcut = QShortcut(QKeySequence("Ctrl+D"), self)
+        self.shortcut = QShortcut(QKeySequence("Ctrl+Y"), self)
         self.shortcut.activated.connect(self._enable_auto_range_y)
         self.shortcut = QShortcut(QKeySequence("Ctrl+R"), self)
         self.shortcut.activated.connect(self._zoom_in_x)
-        self.shortcut = QShortcut(QKeySequence("Ctrl+T"), self)
+        self.shortcut = QShortcut(QKeySequence("Ctrl+E"), self)
         self.shortcut.activated.connect(self._zoom_out_x)
+        self.shortcut = QShortcut(QKeySequence("Ctrl+T"), self)
+        self.shortcut.activated.connect(self._reset_x)
 
         self.ui.txt_poscorr_a.editingFinished.connect(
             self._txt_poscorr_a_focus_lost)
@@ -708,13 +710,13 @@ class WindowMain(QtWidgets.QMainWindow):
                          QtCore.Qt.SolidLine, '')
         self._add_signal(drv_addr, 'VelMotor', 5, self.palette_colours[4],
                          QtCore.Qt.SolidLine, '')
-        self._add_signal(drv_addr, 'EncTgtenc', 6, self.palette_colours[6],
+        self._add_signal(drv_addr, 'EncTgtenc', 3, self.palette_colours[6],
                          QtCore.Qt.SolidLine, '')
-        self._add_signal(drv_addr, 'StatMoving', 3, self.palette_colours[0],
+        self._add_signal(drv_addr, 'StatMoving', 6, self.palette_colours[0],
                          QtCore.Qt.SolidLine, '')
-        self._add_signal(drv_addr, 'StatSettling', 3, self.palette_colours[5],
+        self._add_signal(drv_addr, 'StatSettling', 6, self.palette_colours[5],
                          QtCore.Qt.SolidLine, '')
-        self._add_signal(drv_addr, 'StatStopcode', 3, self.palette_colours[1],
+        self._add_signal(drv_addr, 'StatStopcode', 6, self.palette_colours[1],
                          QtCore.Qt.DotLine, '')
         # self._add_signal(drv_addr, 'StatReady', 3, self.palette_colours[4],
         #    QtCore.Qt.DotLine, '')
@@ -731,10 +733,10 @@ class WindowMain(QtWidgets.QMainWindow):
         self.view_boxes[0].enableAutoRange(axis=self.view_boxes[0].YAxis)
         self.view_boxes[1].disableAutoRange(axis=self.view_boxes[1].YAxis)
         self.view_boxes[1].setYRange(-30, 70, padding=0)
-        self.view_boxes[2].disableAutoRange(axis=self.view_boxes[2].YAxis)
-        self.view_boxes[2].setYRange(-1, 20, padding=0)
+        self.view_boxes[5].disableAutoRange(axis=self.view_boxes[5].YAxis)
+        self.view_boxes[5].setYRange(-1, 20, padding=0)
         self._do_black_background()
-        self.force_autorange = [0, 5]
+        self.force_autorange = [0, 2]
         self._reset_x()
         # self._enable_x_autorange()
         self.hotkey_filename = "Closed_loop_plot"
@@ -755,7 +757,7 @@ class WindowMain(QtWidgets.QMainWindow):
             '')
         self._add_signal(drv_addr, 'DifAxTgtenc', 4, self.palette_colours[1],
                          QtCore.Qt.SolidLine, '')
-        self._add_signal(drv_addr, 'MeasI', 3, self.palette_colours[7],
+        self._add_signal(drv_addr, 'MeasI', 6, self.palette_colours[7],
                          QtCore.Qt.SolidLine, '')
         self._add_signal(
             drv_addr,
@@ -774,8 +776,8 @@ class WindowMain(QtWidgets.QMainWindow):
         # Ajust plot axis
         self.view_boxes[0].enableAutoRange(axis=self.view_boxes[0].YAxis)
         self.view_boxes[1].enableAutoRange(axis=self.view_boxes[1].YAxis)
-        self.view_boxes[2].disableAutoRange(axis=self.view_boxes[2].YAxis)
-        self.view_boxes[2].setYRange(-1, 17.5, padding=0)
+        self.view_boxes[5].disableAutoRange(axis=self.view_boxes[5].YAxis)
+        self.view_boxes[5].setYRange(-1, 17.5, padding=0)
         self.force_autorange = [0, 4]
         self._do_black_background()
         self._reset_x()
@@ -797,25 +799,25 @@ class WindowMain(QtWidgets.QMainWindow):
                          QtCore.Qt.SolidLine, '')
         self._add_signal(drv_addr, 'VelMotor', 4, self.palette_colours[4],
                          QtCore.Qt.SolidLine, '')
-        self._add_signal(drv_addr, 'MeasI', 3, self.palette_colours[5],
+        self._add_signal(drv_addr, 'MeasI', 6, self.palette_colours[5],
                          QtCore.Qt.SolidLine, '')
-        self._add_signal(drv_addr, 'EncTgtenc', 6, self.palette_colours[6],
+        self._add_signal(drv_addr, 'EncTgtenc', 3, self.palette_colours[6],
                          QtCore.Qt.SolidLine, '')
-        self._add_signal(drv_addr, 'StatMoving', 3, self.palette_colours[0],
+        self._add_signal(drv_addr, 'StatMoving', 6, self.palette_colours[0],
                          QtCore.Qt.SolidLine, '')
-        self._add_signal(drv_addr, 'StatSettling', 3, self.palette_colours[5],
+        self._add_signal(drv_addr, 'StatSettling', 6, self.palette_colours[5],
                          QtCore.Qt.DashLine, '')
-        self._add_signal(drv_addr, 'StatStopcode', 3, self.palette_colours[1],
+        self._add_signal(drv_addr, 'StatStopcode', 6, self.palette_colours[1],
                          QtCore.Qt.DotLine, '')
         # Ajust plot axis
         self.view_boxes[0].enableAutoRange(axis=self.view_boxes[0].YAxis)
         self.view_boxes[1].enableAutoRange(axis=self.view_boxes[1].YAxis)
         self.view_boxes[3].enableAutoRange(axis=self.view_boxes[3].YAxis)
         self.view_boxes[4].enableAutoRange(axis=self.view_boxes[4].YAxis)
-        self.view_boxes[2].disableAutoRange(axis=self.view_boxes[2].YAxis)
-        self.view_boxes[2].setYRange(-1, 17.5, padding=0)
+        self.view_boxes[5].disableAutoRange(axis=self.view_boxes[5].YAxis)
+        self.view_boxes[5].setYRange(-1, 17.5, padding=0)
         self.hotkey_filename = "Closed_loopd_plot"
-        self.force_autorange = [0, 5]
+        self.force_autorange = [0, 2]
         self._do_black_background()
         self._reset_x()
         # self._enable_x_autorange()
@@ -831,30 +833,30 @@ class WindowMain(QtWidgets.QMainWindow):
                          QtCore.Qt.SolidLine, '')
         self._add_signal(drv_addr, 'DifAxMotor', 4, self.palette_colours[2],
                          QtCore.Qt.SolidLine, '')
-        self._add_signal(drv_addr, 'EncTgtenc', 5, self.palette_colours[3],
+        self._add_signal(drv_addr, 'EncTgtenc', 3, self.palette_colours[3],
                          QtCore.Qt.SolidLine, '')
-        self._add_signal(drv_addr, 'StatReady', 3, self.palette_colours[4],
+        self._add_signal(drv_addr, 'StatReady', 6, self.palette_colours[4],
                          QtCore.Qt.DotLine, '')
-        self._add_signal(drv_addr, 'StatMoving', 3, self.palette_colours[0],
+        self._add_signal(drv_addr, 'StatMoving', 6, self.palette_colours[0],
                          QtCore.Qt.DotLine, '')
-        self._add_signal(drv_addr, 'StatSettling', 3, self.palette_colours[5],
+        self._add_signal(drv_addr, 'StatSettling', 6, self.palette_colours[5],
                          QtCore.Qt.DotLine, '')
-        self._add_signal(drv_addr, 'StatOutofwin', 3, self.palette_colours[7],
+        self._add_signal(drv_addr, 'StatOutofwin', 6, self.palette_colours[7],
                          QtCore.Qt.DotLine, '')
-        self._add_signal(drv_addr, 'StatWarning', 3, self.palette_colours[8],
+        self._add_signal(drv_addr, 'StatWarning', 6, self.palette_colours[8],
                          QtCore.Qt.DotLine, '')
-        self._add_signal(drv_addr, 'StatStopcode', 3, self.palette_colours[1],
+        self._add_signal(drv_addr, 'StatStopcode', 6, self.palette_colours[1],
                          QtCore.Qt.DotLine, '')
-        self._add_signal(drv_addr, 'MeasI', 3, self.palette_colours[10],
+        self._add_signal(drv_addr, 'MeasI', 6, self.palette_colours[10],
                          QtCore.Qt.SolidLine, '')
         self.view_boxes[0].enableAutoRange(axis=self.view_boxes[0].YAxis)
         self.view_boxes[1].enableAutoRange(axis=self.view_boxes[1].YAxis)
         self.view_boxes[3].enableAutoRange(axis=self.view_boxes[3].YAxis)
-        self.view_boxes[4].enableAutoRange(axis=self.view_boxes[4].YAxis)
-        self.view_boxes[2].disableAutoRange(axis=self.view_boxes[2].YAxis)
-        self.view_boxes[2].setYRange(-1, 17.5, padding=0)
+        self.view_boxes[2].enableAutoRange(axis=self.view_boxes[2].YAxis)
+        self.view_boxes[5].disableAutoRange(axis=self.view_boxes[5].YAxis)
+        self.view_boxes[5].setYRange(-1, 17.5, padding=0)
         self.hotkey_filename = "Closed_loops_plot"
-        self.force_autorange = [0, 4]
+        self.force_autorange = [0, 2]
         self._do_black_background()
         self._reset_x()
         # self._enable_x_autorange()
@@ -870,9 +872,9 @@ class WindowMain(QtWidgets.QMainWindow):
                          QtCore.Qt.SolidLine, '')
         self._add_signal(drv_addr, 'EncTgtenc', 4, self.palette_colours[2],
                          QtCore.Qt.SolidLine, '')
-        self._add_signal(drv_addr, 'StatWarning', 3, self.palette_colours[6],
+        self._add_signal(drv_addr, 'StatWarning', 6, self.palette_colours[6],
                          QtCore.Qt.DotLine, '')
-        self._add_signal(drv_addr, 'MeasI', 3, self.palette_colours[5],
+        self._add_signal(drv_addr, 'MeasI', 6, self.palette_colours[5],
                          QtCore.Qt.DotLine, '')
         self._add_signal(drv_addr, 'VelMotor', 5, self.palette_colours[4],
                          QtCore.Qt.SolidLine, '')  # Not necessary
@@ -880,8 +882,8 @@ class WindowMain(QtWidgets.QMainWindow):
         self.view_boxes[1].enableAutoRange(axis=self.view_boxes[1].YAxis)
         self.view_boxes[3].enableAutoRange(axis=self.view_boxes[3].YAxis)
         self.view_boxes[4].enableAutoRange(axis=self.view_boxes[4].YAxis)
-        self.view_boxes[2].disableAutoRange(axis=self.view_boxes[2].YAxis)
-        self.view_boxes[2].setYRange(-1, 17.5, padding=0)
+        self.view_boxes[5].disableAutoRange(axis=self.view_boxes[5].YAxis)
+        self.view_boxes[5].setYRange(-1, 17.5, padding=0)
         self.force_autorange = [0, 3]
         self.hotkey_filename = "Open_loop_plot"
         self._do_black_background()
@@ -936,9 +938,9 @@ class WindowMain(QtWidgets.QMainWindow):
             0, 255, 0), QtCore.Qt.SolidLine, '')
         self._add_signal(drv_addr, 'EncTgtenc', 4, QtGui.QColor(
             255, 255, 0), QtCore.Qt.SolidLine, '')
-        self._add_signal(drv_addr, 'StatWarning', 3, self.palette_colours[8],
+        self._add_signal(drv_addr, 'StatWarning', 6, self.palette_colours[8],
                          QtCore.Qt.DotLine, '')
-        self.view_boxes[2].setYRange(-1, 17.5, padding=0)
+        self.view_boxes[5].setYRange(-1, 17.5, padding=0)
         self.force_autorange = [0, 3]
         self.hotkey_filename = "Target_plot"
         self._do_black_background()
@@ -964,7 +966,7 @@ class WindowMain(QtWidgets.QMainWindow):
                                      padding=0)
 
     def _import_signal_set(self, filename=None):
-        if filename is None:
+        if filename is None or filename is False:
             fname = QFileDialog.getOpenFileName(
                 self, "Import Signal Set",
                 filter="Signal Set Files Files (*.lst);;All Files (*)",
@@ -1014,6 +1016,8 @@ class WindowMain(QtWidgets.QMainWindow):
         """
         Reset the length of the X axis to
         the initial number of seconds (setting).
+        Toggles between autorangex, autopanx
+        _update_view wont autopanx if now not in view
         """
         now = self.collector.get_current_time()
         start = now - self.settings.default_x_axis_len
@@ -1026,21 +1030,16 @@ class WindowMain(QtWidgets.QMainWindow):
                 self.view_boxes[0].setXRange(start, now, padding=0)
             else:
                 self.view_boxes[0].setXRange(x_min, now, padding=0)
-            # self._enable_x_autorange()
 
     def _enable_auto_range_y(self):
+        #Toggle between vertical split autorange or normal ys autorange
         if self.split_viewbox_enabled:
-            # for i in range(0, len(self.view_boxes)):
-            #    #Keep 2 for status/currents that don't need often autoranging
-            #    #if i != 2:
-            #    #    self.view_boxes[i].autoRange()
             self._split_viewbox_by_yaxis()
             self.split_viewbox_enabled = False
         else:
-            for i in range(0, len(self.view_boxes)):
-                # Keep 2 for status/currents that don't need often autoranging
-                if i != 2:
-                    self.view_boxes[i].enableAutoRange(
+            #Dont autorange last viewbox (status signals)
+            for i in range(0, len(self.view_boxes) - 1):
+                self.view_boxes[i].enableAutoRange(
                         axis=self.view_boxes[i].YAxis)
             self.split_viewbox_enabled = True
 
@@ -1055,7 +1054,7 @@ class WindowMain(QtWidgets.QMainWindow):
         self.ui.btnClear.setDisabled(self._paused)
 
     def _zoom_in_x(self):
-        """Pan X axis to display newest values."""
+        """Zoom in on now or viewbox center"""
         x_min = self.view_boxes[0].viewRange()[0][0]
         x_max = self.view_boxes[0].viewRange()[0][1]
         # now = self.collector.get_current_time()
@@ -1069,7 +1068,7 @@ class WindowMain(QtWidgets.QMainWindow):
         self.view_boxes[0].setXRange(x_min_new, x_max_new, padding=0)
 
     def _zoom_out_x(self):
-        """Pan X axis to display newest values."""
+        """Zoom out on now or viewbox center"""
         x_min = self.view_boxes[0].viewRange()[0][0]
         x_max = self.view_boxes[0].viewRange()[0][1]
         # now = self.collector.get_current_time()
@@ -1109,7 +1108,7 @@ class WindowMain(QtWidgets.QMainWindow):
         user_path = os.path.expanduser("~")
         base_folder = os.path.join(user_path, '.icepaposc')
         filename2 = os.path.join(base_folder, (filename1))
-        # print(filename2)
+        print(filename2)
         self._save_to_file(filename2)
 
     def _save_to_file(self, filename=None):
@@ -1286,7 +1285,7 @@ class WindowMain(QtWidgets.QMainWindow):
         x_min = self.view_boxes[0].viewRange()[0][0]
         x_max = self.view_boxes[0].viewRange()[0][1]
 
-        # Update the X-axis.
+        # Update the X-axis. Autorange, autopan, none if not now
         now_in_range = self.now <= x_max
         self.now = self.collector.get_current_time()
         if not self.x_autorange_enabled():
@@ -1379,7 +1378,11 @@ class WindowMain(QtWidgets.QMainWindow):
         # Update the curves.
         for ci in self.curve_items:
             if corr_factors_need_update:
-                ci.update_curve(x_min, x_max, corr_factors=self.corr_factors)
+                try:
+                    ci.update_curve(x_min, x_max, corr_factors=self.corr_factors)
+                except ValueError:
+                    #Min on empty signal
+                    pass
                 self._update_signals_text(self.last_time_value)
             else:
                 ci.update_curve(x_min, x_max)
@@ -1429,41 +1432,28 @@ class WindowMain(QtWidgets.QMainWindow):
         self.split_viewbox_enabled = not self.split_viewbox_enabled
 
     def _split_viewbox_by_yaxis(self):
-        num_viewboxes = len(self.view_boxes)-1  # skip yaxes 3
-        vertical_slots = len(self.view_boxes) - 1
-        fill_factor = 0.1
-        for yaxis in range(0, 2):
+        used_yaxes = []
+        for i in range(0, len(self.view_boxes)):
+            if not self.y_axis_empty(i) and i not in self.force_autorange:
+                used_yaxes.append(i)
+        print(used_yaxes)
+        vertical_slots = len(used_yaxes)
+        fill_factor = 0.5
+        yslot = 0
+        #Dont change last view box (status signals)
+        for yaxis in range(0, len(self.view_boxes) - 1):
+          if yaxis in used_yaxes:
             [amin, amax] = self.view_boxes[yaxis].viewRange()[1]
             old_center = amin + (amax-amin)/2
             old_range = amax-amin
             range_slots = (amax - amin)*vertical_slots
-            if range_slots == 0:
-                range_slots = 1 * vertical_slots
-            slots_above = (1 + 2 * yaxis)
-            slots_below = (2 * vertical_slots - yaxis * 2 - 1)
-            new_amax = old_center + slots_above * fill_factor * range_slots
-            new_amin = old_center - slots_below * fill_factor * range_slots
-            # print(yaxis, fill_factor, new_amin, new_amax, amin, amax, amax-amin, range_slots, range_slots*fill_factor, old_center )
+            slots_above = 1 + 2 * yslot
+            slots_below = 2 * vertical_slots - yslot * 2 - 1
+            new_amax = old_center + slots_above * old_range / fill_factor
+            new_amin = old_center - slots_below * old_range / fill_factor
+            #print(yaxis, fill_factor, slots_above, slots_below, new_amin, new_amax, amin, amax, amax-amin, range_slots, range_slots*fill_factor, old_center )
             self.view_boxes[yaxis].setYRange(new_amin, new_amax, padding=0)
-            # self.view_boxes[yaxis].setAutoPan(y=True)
-            # self.view_boxes[yaxis].enableAutoRange(
-            #    axis=self.view_boxes[yaxis].YAxis)
-        for yaxis in range(3, len(self.view_boxes)):
-            [amin, amax] = self.view_boxes[yaxis].viewRange()[1]
-            old_center = amin + (amax-amin)/2
-            old_range = amax-amin
-            range_slots = (amax - amin)*vertical_slots
-            if range_slots == 0:
-                range_slots = 1 * vertical_slots
-            slots_above = (1 + 2 * (yaxis-1))
-            slots_below = (2 * vertical_slots - (yaxis-1) * 2 - 1)
-            new_amax = old_center + slots_above * fill_factor * range_slots
-            new_amin = old_center - slots_below * fill_factor * range_slots
-            # print(yaxis, fill_factor, new_amin, new_amax, amin, amax, amax-amin, range_slots, range_slots*fill_factor, old_center )
-            self.view_boxes[yaxis].setYRange(new_amin, new_amax, padding=0)
-            # self.view_boxes[yaxis].setAutoPan(y=True)
-            # self.view_boxes[yaxis].enableAutoRange(
-            #    axis=self.view_boxes[yaxis].YAxis)
+            yslot = yslot + 1
         for n in self.force_autorange:
             self.view_boxes[n].enableAutoRange(
                 axis=self.view_boxes[n].YAxis)

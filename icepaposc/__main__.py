@@ -29,12 +29,16 @@ def get_parser():
     desc += 'Version: {}.\n'.format(version)
     desc += '\n'
     desc += 'Hotkeys:\n'
-    desc += 'Ctrl+O: Save contets to csv format file\n'
+    desc += 'Ctrl+O: Save VISIBLE contents to csv format file\n'
     desc += 'Ctrl+U: Toggle correction factors on and off\n'
     desc += 'Ctrl+I: Input dialog for csv file name\n'
-    desc += 'Ctrl+D: Enable autorange on Ys\n'
-    desc += 'Ctrl+T: Zoom out time axis\n'
-    desc += 'Ctrl+R: Zoom in time axis\n'
+    desc += 'Ctrl+Y: Enable autorange on Ys\n'
+    desc += 'Ctrl+R: Zoom IN time axis\n'
+    desc += 'Ctrl+E: Zoom OUT time axis\n'
+    desc += 'Ctrl+T: Toggle autorange X/autopan X\n'
+    desc += '\n'
+    desc += 'Import/export format:\n'
+    desc += 'Signal yrange(1-6) color driver_addr_OR_x_for_selected forceautorange 1blackbackground\n'
     epi = 'Documentation: https://alba-synchrotron.github.io/pyIcePAP-doc/\n'
     epi += 'Copyright 2017:\n' \
            '   MAX IV Laboratory, Lund, Sweden\n' \
