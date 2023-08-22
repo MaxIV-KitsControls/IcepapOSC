@@ -18,6 +18,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Removed
 
 ### Fixed
+- Fixed signal sets from command line and dialog
+- Hotkeys arranged to match ipaptrend. See –help
+- Autorangex/autopanx switch
+- Autorangey/autorange_y_tiled(split viewbox vertically)
+- Other minor fixes
 
 ## [0.9.0]
 
@@ -158,5 +163,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 [0.6.4]: https://github.com/ALBA-Synchrotron/IcepapOCS/compare/0.5.2...0.6.4
 [0.7.1]: https://github.com/ALBA-Synchrotron/IcepapOCS/compare/0.6.4...0.7.1
 [0.8.2]: https://github.com/ALBA-Synchrotron/IcepapOCS/compare/0.7.1...0.8.2
-[0.9.x]: https://github.com/ALBA-Synchrotron/IcepapOCS/compare/0.8.2...HEAD
+[0.9.0]: https://github.com/ALBA-Synchrotron/IcepapOCS/compare/0.8.2...0.9.0
+[0.10.x]: https://github.com/ALBA-Synchrotron/IcepapOCS/compare/0.9.0...HEAD
 
