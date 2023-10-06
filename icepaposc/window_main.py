@@ -1438,7 +1438,7 @@ class WindowMain(QtWidgets.QMainWindow):
                 used_yaxes.append(i)
         print(used_yaxes)
         vertical_slots = len(used_yaxes)
-        fill_factor = 0.5
+        fill_factor = 1.9
         yslot = 0
         #Dont change last view box (status signals)
         for yaxis in range(0, len(self.view_boxes) - 1):
