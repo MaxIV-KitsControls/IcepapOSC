@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Autorangey/autorange_y_tiled(split viewbox vertically)
 - Other minor fixes
 - Ysplitview feature modification to use up space better vertically
+- Fix long description
 
 ## [0.9.0]
 

@@ -9,8 +9,9 @@ __version = '0.10.2'
 # python setup.py bdist_wininst
 
 
-long_description = """ Python application to monitor and tune IcePAP based 
-systems. """
+long_description = """
+Python application to monitor and tune IcePAP based systems. 
+"""
 
 
 setup(
