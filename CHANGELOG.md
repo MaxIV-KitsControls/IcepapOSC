@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
  all y axes' and 'divide vertical space between yaxes and setRange 
  accordingly' (try yourself).
  - The hotkeys are now available via icepaposc -h
+ - Add Encmeasure method 
  
 
 ### Removed
@@ -25,7 +26,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Other minor fixes
 - Ysplitview feature modification to use up space better vertically
 - Fix long description
-
+- Use pos instead of fpos to read posmeasure, difaxmeasure
 ## [0.9.0]
 
 ### Added
