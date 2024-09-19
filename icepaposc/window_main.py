@@ -740,7 +740,9 @@ class WindowMain(QtWidgets.QMainWindow):
         self._reset_x()
         # self._enable_x_autorange()
         self.hotkey_filename = "Closed_loop_plot"
+        self._run()
         self._goto_now()
+
 
     def _signals_currents(self):
         """Display a specific set of curves."""
@@ -783,6 +785,7 @@ class WindowMain(QtWidgets.QMainWindow):
         self._reset_x()
         # self._enable_x_autorange()
         self.hotkey_filename = "Currents_plot"
+        self._run()
         self._goto_now()
 
     def _signals_closed_loop_dynamic(self):
@@ -821,6 +824,7 @@ class WindowMain(QtWidgets.QMainWindow):
         self._do_black_background()
         self._reset_x()
         # self._enable_x_autorange()
+        self._run()
         self._goto_now()
 
     def _signals_closed_loop_static(self):
@@ -860,6 +864,7 @@ class WindowMain(QtWidgets.QMainWindow):
         self._do_black_background()
         self._reset_x()
         # self._enable_x_autorange()
+        self._run()
         self._goto_now()
 
     def _signals_open_loop(self):
@@ -889,6 +894,7 @@ class WindowMain(QtWidgets.QMainWindow):
         self._do_black_background()
         self._reset_x()
         # self._enable_x_autorange()
+        self._run()
         self._goto_now()
 
     def _signals_velocities(self):
@@ -926,6 +932,7 @@ class WindowMain(QtWidgets.QMainWindow):
         self.hotkey_filename = "Velocities_plot"
         self._reset_x()
         # self._enable_x_autorange()
+        self._run()
         self._goto_now()
 
     def _signals_target(self):
@@ -946,6 +953,7 @@ class WindowMain(QtWidgets.QMainWindow):
         self._do_black_background()
         self._reset_x()
         # self._enable_x_autorange()
+        self._run()
         self._goto_now()
 
     def _clear_all(self):
@@ -1052,6 +1060,10 @@ class WindowMain(QtWidgets.QMainWindow):
             self._paused = True
             self.ui.btnPause.setText('Run')
         self.ui.btnClear.setDisabled(self._paused)
+
+    def _run(self):
+        self._paused = False
+        self.ui.btnPause.setText('Pause')
 
     def _zoom_in_x(self):
         """Zoom in on now or viewbox center"""
@@ -1438,7 +1450,7 @@ class WindowMain(QtWidgets.QMainWindow):
                 used_yaxes.append(i)
         print(used_yaxes)
         vertical_slots = len(used_yaxes)
-        fill_factor = 0.5
+        fill_factor = 1.9
         yslot = 0
         #Dont change last view box (status signals)
         for yaxis in range(0, len(self.view_boxes) - 1):
