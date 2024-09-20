@@ -19,7 +19,8 @@
 
 from PyQt5 import QtCore
 from collections import OrderedDict
-from icepap import IcePAPController
+# from icepap import IcePAPController
+from .FIcePAPController import FIcePAPController as IcePAPController
 from .channel import Channel
 import time
 
