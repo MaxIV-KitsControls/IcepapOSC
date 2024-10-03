@@ -63,7 +63,7 @@ def get_parser():
                        help='Default curves correction factors'
                             '--corr=\'pa,pb,ea,eb\'')
     parse.add_argument('--yrange', default='',
-                       help='Default yaxes with forced autorange when '
+                       help='Default yaxes with skipped autorange when '
                             'slotted yview --yrange=\'1,3,5\'')
     parse.add_argument('-s', '--sig', nargs='*', default=[],
                        help='Preselected signals '
