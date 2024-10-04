@@ -518,6 +518,8 @@ class WindowMain(QtWidgets.QMainWindow):
 
     def _remove_empty_y_axis(self, y_axis):
         i = y_axis - 1
+        if i in self.skip_autorange:
+            self.skip_autorange.remove(i)
         if i is not None and i > 1:
             if self.y_axis_empty(y_axis):
                 try:
