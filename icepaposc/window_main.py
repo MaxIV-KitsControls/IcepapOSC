@@ -591,7 +591,7 @@ class WindowMain(QtWidgets.QMainWindow):
         txtlocalmax = ''
         text_size = 8
         float_decimals = 9
-        span_html = "{}{:." + str(float_decimals) + "f}</span>"
+        span_html = "{}{}</span>"
         for ci in self.curve_items:
             tmp = "<span style='font-size: {}pt; overflow: hidden; color: {};'>|"
             tmp = tmp.format(text_size, ci.color.name())
