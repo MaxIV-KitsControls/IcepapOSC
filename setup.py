@@ -3,14 +3,15 @@ from setuptools import find_packages
 
 # The version is updated automatically with bumpversion
 # Do not update manually
-__version = '0.10.0'
+__version = '0.10.4'
 
 # windows installer:
 # python setup.py bdist_wininst
 
 
-long_description = """ Python application to monitor and tune IcePAP based 
-systems. """
+long_description = """
+Python application to monitor and tune IcePAP based systems. 
+"""
 
 
 setup(

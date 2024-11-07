@@ -13,12 +13,20 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
  all y axes' and 'divide vertical space between yaxes and setRange 
  accordingly' (try yourself).
  - The hotkeys are now available via icepaposc -h
+ - Add Encmeasure method 
  
 
 ### Removed
 
 ### Fixed
-
+- Fixed signal sets from command line and dialog
+- Hotkeys arranged to match ipaptrend. See –help
+- Autorangex/autopanx switch
+- Autorangey/autorange_y_tiled(split viewbox vertically)
+- Other minor fixes
+- Ysplitview feature modification to use up space better vertically
+- Fix long description
+- Use pos instead of fpos to read posmeasure, difaxmeasure
 ## [0.9.0]
 
 ### Added
@@ -158,5 +166,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 [0.6.4]: https://github.com/ALBA-Synchrotron/IcepapOCS/compare/0.5.2...0.6.4
 [0.7.1]: https://github.com/ALBA-Synchrotron/IcepapOCS/compare/0.6.4...0.7.1
 [0.8.2]: https://github.com/ALBA-Synchrotron/IcepapOCS/compare/0.7.1...0.8.2
-[0.9.x]: https://github.com/ALBA-Synchrotron/IcepapOCS/compare/0.8.2...HEAD
+[0.9.0]: https://github.com/ALBA-Synchrotron/IcepapOCS/compare/0.8.2...0.9.0
+[0.10.x]: https://github.com/ALBA-Synchrotron/IcepapOCS/compare/0.9.0...HEAD
 

@@ -1509,6 +1509,11 @@
           </item>
           <item>
            <property name="text">
+            <string>Y6</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
             <string>X</string>
            </property>
           </item>

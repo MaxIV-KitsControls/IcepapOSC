@@ -47,6 +47,8 @@ class CurveItem:
         self.val_cross = 0
         self.val_local_min = 0
         self.val_local_max = 0
+        self.last_idx_min = 0
+        self.last_idx_max = 0
         self.color = linecolor
         self.pen = {'color': linecolor,
                     'width': 1,
@@ -97,10 +99,10 @@ class CurveItem:
             if corr_factors != None and corr_factors != [] :
                 self.corr_factors = corr_factors
                 self.update_array_val_corr()
-            idx_min = self.get_time_index(time_min)
-            idx_max = self.get_time_index(time_max)
-            self.curve.setData(x=self.array_time[idx_min:idx_max],
-                               y=self.array_val_corr[idx_min:idx_max])
+            self.last_idx_min = self.get_time_index(time_min)
+            self.last_idx_max = self.get_time_index(time_max)
+            self.curve.setData(x=self.array_time[self.last_idx_min:self.last_idx_max],
+                               y=self.array_val_corr[self.last_idx_min:self.last_idx_max])
                                
     def update_array_val_corr(self):
         if self.signal_type == 1:
@@ -167,8 +169,6 @@ class CurveItem:
                 self.array_val.append(v)
                 vcorr = self.calculate_val_corr(v)
                 self.array_val_corr.append(vcorr)
-                #print(self.array_val_corr[-1])
-                #print(len(self.array_val_corr))
                 if vcorr > self.val_max:
                     self.val_max = v
                 elif vcorr < self.val_min:

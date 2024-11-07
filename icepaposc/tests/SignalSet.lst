@@ -1,0 +1,6 @@
+PosAxis 1 #ff0000 0 
+DifAxTgtenc 3 #00ff00 0 
+DifAxMotor 3 #007fff 0 
+VelCurrent 5 #00ffff 0 
+EncTgtenc 2 #008000 0 
+StatMoving 6 #ff0000 0 
