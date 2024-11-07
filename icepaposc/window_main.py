@@ -39,7 +39,7 @@ class WindowMain(QtWidgets.QMainWindow):
     """A dialog for plotting IcePAP signals."""
 
     def __init__(self, host, port, timeout, siglist,
-                 selected_driver=None, sigset=None, corr=None, yrange=None):
+                 selected_driver=None, sigset=None, corr=None, yrange=None, dump_rate=2, sample_rate=50):
         """
         Initializes an instance of class WindowMain.
 
@@ -63,6 +63,10 @@ class WindowMain(QtWidgets.QMainWindow):
         self.setAttribute(QtCore.Qt.WA_DeleteOnClose, True)
         self.setWindowTitle('Oscilloscope | {}'.format(host))
         self.settings = Settings()
+        if dump_rate != 2:
+            self.settings.dump_rate = dump_rate
+        if sample_rate != 50:
+            self.settings.sample_rate = sample_rate
 
         # Corrector factors for POS and ENC
         # Take cmd line, fill ui
