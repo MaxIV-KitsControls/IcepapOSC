@@ -784,6 +784,7 @@ class WindowMain(QtWidgets.QMainWindow):
         self.skip_autorange = []
         self._do_black_background()
         self.hotkey_filename = "Currents_plot"
+        self._run()
         self._goto_now()
 
     def _signals_closed_loop_dynamic(self):
