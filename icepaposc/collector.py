@@ -308,6 +308,8 @@ class IceDtaxDescriptor(IcePAPDescriptor):
     TimeOut = 5.0
     d = dtax()
     raw = False
+    speedRpsNotUnits = False
+    positionRevsNotUnits = False
 
     def __init__(self, host, port, timeout):
         self.host1 = host.split(",")[0]
@@ -350,6 +352,18 @@ class IceDtaxDescriptor(IcePAPDescriptor):
         )
         self.sig_list = list(self.sig_getters.keys())
 
+    def getExtraSpeedFactorFromRPM(self, addr):
+        # rps is configured by default (not rpms). If units, change dtax
+        if not self.speedRpsNotUnits:
+            if not self.NotFlexpes:
+                return self.d.extraSpeedFactorFlexpes
+            elif int(addr) <= 4:
+                return self.d.extraSpeedFactorMMGap
+            else:
+                return self.d.extraSpeedFactorMMPhase
+        else:
+            return 1.0
+
     def get_voltagermotor(self, addr):
         par = "4.01"
         self.digitax_get_parameter(addr, self.d.dtax_params[par])
@@ -357,13 +371,13 @@ class IceDtaxDescriptor(IcePAPDescriptor):
             self.d.dtax_params[par], scale=self.d.dtax_params[par]["scale"]
         )
         if self.NotFlexpes and addr in [1, 2, 3, 4]:
-            resistancehalfphase2phase = 48.2  # 5.17
+            resistance_phase = 48.2  # 5.17
         else:
-            resistancehalfphase2phase = 0.75
-        resistance = 2 * resistancehalfphase2phase
+            resistance_phase = 0.75
+        resistance_line2line = 2 * resistance_phase
         if result is None:
             return 0.0
-        return resistance * abs(result)
+        return resistance_line2line * abs(result)
 
     def get_voltagelmotor(self, addr):
         par = "4.01"
@@ -394,7 +408,7 @@ class IceDtaxDescriptor(IcePAPDescriptor):
             * polespairs
             * 60
             * rpms
-            * (1 / self.d.speedFactor)
+            * (self.d.speedFactor)
             * curr
         )
         if result is None:
@@ -438,6 +452,8 @@ class IceDtaxDescriptor(IcePAPDescriptor):
                 position_factor = self.d.positionRevFactorMMGap
             else:
                 position_factor = self.d.positionRevFactorMMPhase
+        if attr_name.startswith("speed"):
+            position_factor = self.getExtraSpeedFactorFromRPM(addr)
         self.digitax_get_parameter(addr, self.d.dtax_params[par])
         result = self.digitaxDecodeFrame(
             self.d.dtax_params[par],

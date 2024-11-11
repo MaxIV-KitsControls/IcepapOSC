@@ -2,18 +2,20 @@ class dtax:
     # Get the info to add new params to this list from the advanced user guide
     # . There's a table there of 32b params, rest are 16b.
     registerTab = []
-    speedFactor = 1 / 60.0  # speeds in rps instead of rpms
-    speedFactorMMGap = (1 / 60.0) * (16400 / 157299.06)
-    speedFactorMMPhase = (1 / 60.0) * (16400 / 47025.08961)
-    speedFactorFlexpes = (1 / 60.0) * (16400 / 98400)
-    positionFactorMMGap = (1 / 2**16) * (16400 / 157299.06)
-    positionFactorMMPhase = (1 / 2**16) * (16400 / 47025.08961)
-    positionFactorFlexpes = (1 / 2**16) * (16400 / 98400)
+    speedFactorRps = 1 / 60.0  #
+    speedFactorRevsNotMM = True
+    speedFactor = speedFactorRps  # speeds in rps instead of rpms
+    extraSpeedFactorMMGap = 5e-6 * 20852  # / 16400  # (16400 / 157299.06)
+    extraSpeedFactorMMPhase = 5e-6 * 69750  # / 16400  # (16400 / 47025.08961)
+    extraSpeedFactorFlexpes = 5e-6 * 33334  # / 16400  # (16400 / 98400)
+    positionFactorMMGap = (1 / 2**16) * (5e-6 * 20852)  #  (16400 / 157299.06)
+    positionFactorMMPhase = (1 / 2**16) * (5e-6 * 69750)  # (16400 / 47025.08961)
+    positionFactorFlexpes = (1 / 2**16) * (5e-6 * 33334)  # (16400 / 98400)
     positionRevFactorMMGap = (1 / 1) * (
-        16400 / 157299.06
+        5e-6 * 20852
     )  # I have not explained the 1.25 factor and am using posmotor
-    positionRevFactorMMPhase = (1 / 1) * (16400 / 47025.08961)
-    positionRevFactorFlexpes = (1 / 1) * (16400 / 98400)
+    positionRevFactorMMPhase = (1 / 1) * (5e-6 * 69540)  # (16400 / 47025.08961)
+    positionRevFactorFlexpes = (1 / 1) * (5e-6 * 33334)  # (16400 / 98400)
     ktGap = 2.4
     ktPhase = 1.6
     ktFlexpes = 1  # ??
@@ -440,7 +442,7 @@ class dtax:
         "register": 1,
         "dtype": "int16",  # "int32",  # but it is a 32b param so somethign is wrong?
         "signed": True,
-        "factor": 1.0 * speedFactor,  # but could be 0.1 ??
+        "factor": 0.1 * speedFactor,  # but could be 0.1 ??
         "scale": True,
         "desc": "Final speed reference speed_max_rpm",
         "default": 1,  # ?i16 65535, i32, f err
