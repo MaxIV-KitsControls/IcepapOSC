@@ -76,6 +76,12 @@ class IcePAPDescriptor:
                 ("MeasVm", self._getter_meas_vm),
                 ("VelCurrent", self._getter_vel_current),
                 ("VelMotor", self._getter_vel_motor),
+                ("SyncAux", self._getter_syncaux),
+                ("SyncPos", self._getter_syncpos),
+                ("EinAux", self._getter_einaux),
+                ("EinPos", self._getter_einpos),
+                ("InpAux", self._getter_inpaux),
+                ("InpPos", self._getter_inppos),
             ]
         )
         self.host = host
@@ -272,6 +278,24 @@ class IcePAPDescriptor:
     def _getter_stat_home(self, addr):
         return 1 if self.icepap_system[addr].state_inhome else 0
 
+    def _getter_syncaux(self, addr):
+        return float(self.icepap_system[addr].send_cmd("?isg ?syncval")[-1])
+
+    def _getter_syncpos(self, addr):
+        return float(self.icepap_system[addr].send_cmd("?isg ?syncval")[-2])
+
+    def _getter_einaux(self, addr):
+        return float(self.icepap_system[addr].send_cmd("?isg ?einval")[-1])
+
+    def _getter_einpos(self, addr):
+        return float(self.icepap_system[addr].send_cmd("?isg ?einval")[-2])
+
+    def _getter_inpaux(self, addr):
+        return float(self.icepap_system[addr].send_cmd("?isg ?inpval")[-1])
+
+    def _getter_inppos(self, addr):
+        return float(self.icepap_system[addr].send_cmd("?isg ?inpval")[-2])
+
     def _getter_meas_i(self, addr):
         return self.icepap_system[addr].meas_i
 
@@ -308,7 +332,7 @@ class IceDtaxDescriptor(IcePAPDescriptor):
     TimeOut = 5.0
     d = dtax()
     raw = False
-    speedRpsNotUnits = False
+    speedRpsNotUnits = True
     positionRevsNotUnits = False
 
     def __init__(self, host, port, timeout):
@@ -374,7 +398,7 @@ class IceDtaxDescriptor(IcePAPDescriptor):
             resistance_phase = 48.2  # 5.17
         else:
             resistance_phase = 0.75
-        resistance_line2line = 2 * resistance_phase
+        resistance_line2line = resistance_phase  # *2
         if result is None:
             return 0.0
         return resistance_line2line * abs(result)
@@ -398,12 +422,12 @@ class IceDtaxDescriptor(IcePAPDescriptor):
             inductance = 99.2  # mh #5.24
         else:
             inductance = 19.700
-        inductanceph2ph = 2 * inductance
+        inductancel2l = inductance  # * 2
         polespairs = 3
         result = (
             2
             * 3.14159
-            * inductanceph2ph
+            * inductancel2l
             * 1e-3
             * polespairs
             * 60
@@ -606,6 +630,7 @@ class Collector:
         """
         try:
             self.icepap_system = IceDtaxDescriptor(self.host, self.port, timeout)
+            # self.icepap_system = IcePAPDescriptor(self.host, self.port, timeout)
         except Exception as e:
             msg = (
                 "Failed to instantiate master controller.\nHost: "
