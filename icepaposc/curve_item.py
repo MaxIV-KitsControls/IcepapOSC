@@ -26,8 +26,16 @@ from pyqtgraph import PlotCurveItem, PlotDataItem
 class CurveItem:
     """Represents a curve to be plotted in a diagram."""
 
-    def __init__(self, subscription_id, driver_addr, sig_name, y_axis,
-                 linecolor, linestyle, linemarker):
+    def __init__(
+        self,
+        subscription_id,
+        driver_addr,
+        sig_name,
+        y_axis,
+        linecolor,
+        linestyle,
+        linemarker,
+    ):
         """
         Initializes an instance of class CurveItem.
 
@@ -50,15 +58,13 @@ class CurveItem:
         self.last_idx_min = 0
         self.last_idx_max = 0
         self.color = linecolor
-        self.pen = {'color': linecolor,
-                    'width': 1,
-                    'style': linestyle}
+        self.pen = {"color": linecolor, "width": 1, "style": linestyle}
         self.symbol = linemarker
         self.curve = None
         self.lock = RLock()
-        self.signature = ''
+        self.signature = ""
         self.update_signature()
-        if sig_name.upper().startswith("POS"): 
+        if sig_name.upper().startswith("POS"):
             self.signal_type = 1
         elif sig_name.upper().startswith("DIF"):
             self.signal_type = 3
@@ -68,52 +74,60 @@ class CurveItem:
             self.signal_type = 3
         else:
             self.signal_type = 0
-        self.corr_factors = [1,0,1,0]
+        self.corr_factors = [1, 0, 1, 0]
 
     def update_signature(self):
         """Sets the new value of the signature string."""
-        self.signature = '{}:{}:{}'.format(self.driver_addr,
-                                           self.signal_name,
-                                           self.y_axis)
+        self.signature = "{}:{}:{}".format(
+            self.driver_addr, self.signal_name, self.y_axis
+        )
 
     def create_curve(self):
         """Creates a new plot item."""
         with self.lock:
-            if self.symbol != '':
-                self.curve = PlotDataItem(x=self.array_time,
-                                          y=self.array_val_corr,
-                                          pen=self.pen,
-                                          symbol=self.symbol,
-                                          symbolBrush=QtGui.QBrush(self.color),
-                                          symbolPen=self.color)
+            if self.symbol != "":
+                self.curve = PlotDataItem(
+                    x=self.array_time,
+                    y=self.array_val_corr,
+                    pen=self.pen,
+                    symbol=self.symbol,
+                    symbolBrush=QtGui.QBrush(self.color),
+                    symbolPen=self.color,
+                )
             else:
-                self.curve = PlotDataItem(x=self.array_time,
-                                          y=self.array_val_corr,
-                                          pen=self.pen)
+                self.curve = PlotDataItem(
+                    x=self.array_time, y=self.array_val_corr, pen=self.pen
+                )
 
         return self.curve
 
     def update_curve(self, time_min, time_max, corr_factors=[]):
         """Updates the curve with recent collected data."""
         with self.lock:
-            if corr_factors != None and corr_factors != [] :
+            if corr_factors != None and corr_factors != []:
                 self.corr_factors = corr_factors
                 self.update_array_val_corr()
             self.last_idx_min = self.get_time_index(time_min)
             self.last_idx_max = self.get_time_index(time_max)
-            self.curve.setData(x=self.array_time[self.last_idx_min:self.last_idx_max],
-                               y=self.array_val_corr[self.last_idx_min:self.last_idx_max])
-                               
+            self.curve.setData(
+                x=self.array_time[self.last_idx_min : self.last_idx_max],
+                y=self.array_val_corr[self.last_idx_min : self.last_idx_max],
+            )
+
     def update_array_val_corr(self):
         if self.signal_type == 1:
-            self.array_val_corr = [self.corr_factors[0]*x + self.corr_factors[1] for x in self.array_val]
+            self.array_val_corr = [
+                self.corr_factors[0] * x + self.corr_factors[1] for x in self.array_val
+            ]
         elif self.signal_type == 2:
-            self.array_val_corr = [self.corr_factors[2]*x + self.corr_factors[3] for x in self.array_val]
+            self.array_val_corr = [
+                self.corr_factors[2] * x + self.corr_factors[3] for x in self.array_val
+            ]
         elif self.signal_type == 3:
-            self.array_val_corr = [self.corr_factors[0]*x for x in self.array_val]
+            self.array_val_corr = [self.corr_factors[0] * x for x in self.array_val]
         self.val_min = min(self.array_val_corr)
         self.val_max = max(self.array_val_corr)
-    
+
     def calculate_val_corr(self, val):
         if self.signal_type == 1:
             return val * self.corr_factors[0] + self.corr_factors[1]
@@ -123,12 +137,12 @@ class CurveItem:
             return val * self.corr_factors[0]
         else:
             return val
-    
+
     def calculate_local_min(self, t1, t2):
         idx_min = self.get_time_index(t1)
         idx_max = self.get_time_index(t2)
         return min(self.array_val_corr[idx_min:idx_max])
-                               
+
     def calculate_local_max(self, t1, t2):
         idx_min = self.get_time_index(t1)
         idx_max = self.get_time_index(t2)
@@ -143,8 +157,7 @@ class CurveItem:
                 Otherwise False.
         """
         with self.lock:
-            if self.array_time and \
-                    self.array_time[0] < t < self.array_time[-1]:
+            if self.array_time and self.array_time[0] < t < self.array_time[-1]:
                 return True
         return False
 
@@ -211,6 +224,10 @@ class CurveItem:
             delta_t = time_max - time_min
             t = time_val - time_min
             idx = int((t / delta_t) * len(self.array_time))
+            if idx >= len(self.array_time):
+                idx = len(self.array_time) - 1
+            if idx < 0:
+                idx = 0
             while self.array_time[idx] > time_val:
                 idx -= 1
             while self.array_time[idx] < time_val:
