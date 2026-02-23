@@ -2,20 +2,18 @@ class dtax:
     # Get the info to add new params to this list from the advanced user guide
     # . There's a table there of 32b params, rest are 16b.
     registerTab = []
-    speedFactorRps = 1 / 60.0  #
-    speedFactorRevsNotMM = True
-    speedFactor = speedFactorRps  # speeds in rps instead of rpms
-    extraSpeedFactorMMGap = 5e-6 * 20852  # / 16400  # (16400 / 157299.06)
-    extraSpeedFactorMMPhase = 5e-6 * 69750  # / 16400  # (16400 / 47025.08961)
-    extraSpeedFactorFlexpes = 5e-6 * 33334  # / 16400  # (16400 / 98400)
-    positionFactorMMGap = (1 / 2**16) * (5e-6 * 20852)  #  (16400 / 157299.06)
-    positionFactorMMPhase = (1 / 2**16) * (5e-6 * 69750)  # (16400 / 47025.08961)
-    positionFactorFlexpes = (1 / 2**16) * (5e-6 * 33334)  # (16400 / 98400)
+    speedFactor = 1 / 60.0  # speeds in rps instead of rpms
+    speedFactorMMGap = (1 / 60.0) * (16400 / 157299.06)
+    speedFactorMMPhase = (1 / 60.0) * (16400 / 47025.08961)
+    speedFactorFlexpes = (1 / 60.0) * (16400 / 98400)
+    positionFactorMMGap = (1 / 2**16) * (16400 / 157299.06)
+    positionFactorMMPhase = (1 / 2**16) * (16400 / 47025.08961)
+    positionFactorFlexpes = (1 / 2**16) * (16400 / 98400)
     positionRevFactorMMGap = (1 / 1) * (
-        5e-6 * 20852
+        16400 / 157299.06
     )  # I have not explained the 1.25 factor and am using posmotor
-    positionRevFactorMMPhase = (1 / 1) * (5e-6 * 69540)  # (16400 / 47025.08961)
-    positionRevFactorFlexpes = (1 / 1) * (5e-6 * 33334)  # (16400 / 98400)
+    positionRevFactorMMPhase = (1 / 1) * (16400 / 47025.08961)
+    positionRevFactorFlexpes = (1 / 1) * (16400 / 98400)
     ktGap = 2.4
     ktPhase = 1.6
     ktFlexpes = 1  # ??
@@ -41,22 +39,29 @@ class dtax:
     MOTOR_CURRENT_RATED_FLEXPES = 2.38  #
     MOTOR_CURRENT_RATED_MAX_1401 = 1.5  # 11.32 or 1.75KC/3
     MOTOR_CURRENT_RATED_MAX_1402 = 2.7  # 11.32
-    # MOTOR_CURRENT_LIMIT_MAX_1401 = 100 * 1.75 * KC_1401 / MOTOR_CURRENT_RATED_GAP
-    # MOTOR_CURRENT_LIMIT_MAX_1402 = 100 * 1.75 * KC_1402 / MOTOR_CURRENT_RATED_PHASE
-    MOTOR_CURRENT_LIMIT_MAX_1401 = 1.75 * KC_1401
-    MOTOR_CURRENT_LIMIT_MAX_1402 = 1.75 * KC_1402
-    # TORQUE_PROD_CURRENT_MAX_1401 = (
-    #    1.75 * KC_1401
-    # )  # MOTOR_CURRENT_LIMIT_MAX_1401  # 1.75KC
-    # TORQUE_PROD_CURRENT_MAX_1402 = 1.75 * KC_1402  # MOTOR_CURRENT_LIMIT_MAX_1402
+    # MOTOR_CURRENT_LIMIT_MAX is a percentage (1000.0%)
+    # if you want it to see the current you have to take
+    # MOTOR_CURRENT_LIMIT_MAX * 0.01 * MOTOR_CURRENT_RATED_*
+    # besides that in modbus you will get the .0 as  an integer 0 (*0.1)
+    MOTOR_CURRENT_LIMIT_MAX_1401 = 100 * 1.75 * KC_1401 / MOTOR_CURRENT_RATED_GAP
+    MOTOR_CURRENT_LIMIT_MAX_1402 = 100 * 1.75 * KC_1402 / MOTOR_CURRENT_RATED_PHASE
+    # since TORQUE_PROD_CURRENT_MAX_* and USER_CURRENT_MAX_* all are maxed at
+    # MOTOR_CURRENT_LIMIT_MAX if one wants Amps
+    # the scaling is the same 1.75*KC (same as MOTOR_CURRENT_LIM*MOT_CURR_RATED_)
     TORQUE_PROD_CURRENT_MAX_1401 = (
         1.75 * KC_1401
-    )  # For a 300.0% MOTOR_CURRENT_LIMIT_MAX_1402
-    TORQUE_PROD_CURRENT_MAX_1402 = (
-        1.75 * KC_1402
-    )  # For a 300.0% MOTOR_CURRENT_LIMIT_MAX_1402
-    USER_CURRENT_MAX_1401 = 3 * MOTOR_CURRENT_RATED_GAP  # 4.24
-    USER_CURRENT_MAX_1402 = 3 * MOTOR_CURRENT_RATED_PHASE
+    )  # MOTOR_CURRENT_LIMIT_MAX_1401  # 1.75KC
+    TORQUE_PROD_CURRENT_MAX_1402 = 1.75 * KC_1402  # MOTOR_CURRENT_LIMIT_MAX_1402
+    # USER_CURRENT_MAX_1401 = MOTOR_CURRENT_LIMIT_MAX_1401
+    USER_CURRENT_MAX_1401 = TORQUE_PROD_CURRENT_MAX_1401
+    # 4.24 to further limit and used for 4.08 and 4.20 tqref and pcload aio
+    # USER_CURRENT_MAX_1402 = MOTOR_CURRENT_LIMIT_MAX_1402
+    USER_CURRENT_MAX_1402 = TORQUE_PROD_CURRENT_MAX_1402
+    # THE DOCUMENTATION IS SHIT and these are the values for current conversions
+    USER_CURRENT_MAX_1401 = KC_1401 / MOTOR_CURRENT_RATED_GAP
+    USER_CURRENT_MAX_1402 = KC_1402 / MOTOR_CURRENT_RATED_PHASE
+    TORQUE_PROD_CURRENT_MAX_1401 = USER_CURRENT_MAX_1401
+    TORQUE_PROD_CURRENT_MAX_1402 = USER_CURRENT_MAX_1402
     POWER_MAX_1401 = 1.732 * AC_VOLTAGE_MAX * DRIVE_CURRENT_MAX_1401
     POWER_MAX_1402 = 1.732 * AC_VOLTAGE_MAX * DRIVE_CURRENT_MAX_1402
     ct1401 = [
@@ -93,25 +98,13 @@ class dtax:
         "PowerMax",
     ]
     dtax_params = {}
-    dtax_params["4.20"] = {
-        "menu": 4,
-        "register": 20,
-        "dtype": "int16",
-        "signed": True,
-        "factor": 0.1,  # 65433 res 0.1A
-        "scale": True,
-        "desc": "+motor - regen, torque producing current as percentage of user current max bip % user current max",
-        "default": 65433,
-        "getter": "get_currentLoadPCMotRegen",
-        "unit": "%",
-    }
-
     dtax_params["4.20g"] = {
         "menu": 4,
         "register": 20,
         "dtype": "int16",
         "signed": True,
         "factor": 0.1 * USER_CURRENT_MAX_1401 * 0.01,  # 65433 res 0.1A
+        # "factor": 0.1 * MOTOR_CURRENT_RATED_GAP * 0.01 * 0.01,  # res 0.1A
         "scale": True,
         "desc": "torque producing current as percentage of user current max bip % user current max",
         "default": 65433,
@@ -124,6 +117,7 @@ class dtax:
         "dtype": "int16",
         "signed": True,
         "factor": 0.1 * USER_CURRENT_MAX_1402 * 0.01,  # res 0.1A
+        # "factor": 0.1 * MOTOR_CURRENT_RATED_PHASE * 0.01 * 0.01,  # res 0.1A
         "scale": True,
         "desc": "torque producing current as percentage of user current max bip % user current max",
         "default": 65433,
@@ -222,9 +216,9 @@ class dtax:
         # "factor": (MOTOR_CURRENT_RATED_MAX_1401 * MOTOR_CURRENT_LIMIT_MAX_1401 * 0.01)
         # * 0.01
         # * 0.1,
-        "factor": (MOTOR_CURRENT_LIMIT_MAX_1401 * 0.01 * 0.1),
+        "factor": 0.1 * USER_CURRENT_MAX_1401 * 0.01,  # res 0.1A
         "scale": True,
-        "desc": "Symmetrical current limit in % of CLM 0.1%",
+        "desc": "Symmetrical current limit in % of CLM res 0.1",
         "default": 903.0,  # 3k for 13.545# 300.0
         "getter": "get_currentLimit",
         "units": "A",
@@ -234,12 +228,12 @@ class dtax:
         "register": 6,
         "dtype": "int16",  # "float",
         "signed": False,
-        "factor": (MOTOR_CURRENT_LIMIT_MAX_1402 * 0.01 * 0.1),
         # "factor": (MOTOR_CURRENT_RATED_MAX_1402 * MOTOR_CURRENT_LIMIT_MAX_1402 * 0.01)
         # * 0.01
         # * 0.1,
+        "factor": 0.1 * USER_CURRENT_MAX_1402 * 0.01,  # res 0.1A
         "scale": True,
-        "desc": "Symmetrical current limit in % of CLM",
+        "desc": "Symmetrical current limit in % of CLM res 0.1",
         "default": 900.3,  # 300.0
         "getter": "get_currentLimit",
         "units": "A",
@@ -442,7 +436,7 @@ class dtax:
         "register": 1,
         "dtype": "int16",  # "int32",  # but it is a 32b param so somethign is wrong?
         "signed": True,
-        "factor": 0.1 * speedFactor,  # but could be 0.1 ??
+        "factor": 1.0 * speedFactor,  # but could be 0.1 ??
         "scale": True,
         "desc": "Final speed reference speed_max_rpm",
         "default": 1,  # ?i16 65535, i32, f err
@@ -522,11 +516,39 @@ class dtax:
         "signed": False,
         "factor": 0.01,  # 0.1,  # 1.0,  # as with 4.02 only int16 and 0.1A res match the drive output
         "scale": True,
-        "desc": "Motor drive current magnitude phase rms 0.01",
+        "desc": "Motor drive current magnitude phase rms 0.01 DRIVE_CURRENT_MAX_14",
         "default": 0,  # ?6 f 0 i32 err
         "getter": "get_currentMagnitudeRMS",
         "unit": "A",
     }
+    """
+    dtax_params["4.01g"] = {
+        "menu": 4,
+        "register": 1,
+        "dtype": "int16",  # "float",  # 4.01 is 32bpar int32 err
+        "signed": False,
+        "factor": 0.01
+        * DRIVE_CURRENT_MAX_1401,  # 0.1,  # 1.0,  # as with 4.02 only int16 and 0.1A res match the drive output
+        "scale": True,
+        "desc": "Motor drive current magnitude phase rms 0.01 DRIVE_CURRENT_MAX_14",
+        "default": 0,  # ?6 f 0 i32 err
+        "getter": "get_currentMagnitudeRMS",
+        "unit": "A",
+    }
+    dtax_params["4.01p"] = {
+        "menu": 4,
+        "register": 1,
+        "dtype": "int16",  # "float",  # 4.01 is 32bpar int32 err
+        "signed": False,
+        "factor": 0.01
+        * DRIVE_CURRENT_MAX_1402,  # 0.1,  # 1.0,  # as with 4.02 only int16 and 0.1A res match the drive output
+        "scale": True,
+        "desc": "Motor drive current magnitude phase rms 0.01 DRIVE_CURRENT_MAX_14",
+        "default": 0,  # ?6 f 0 i32 err
+        "getter": "get_currentMagnitudeRMS",
+        "unit": "A",
+    }
+    """
     dtax_params["4.02"] = {
         "menu": 4,
         "register": 2,
@@ -539,6 +561,32 @@ class dtax:
         "getter": "get_currentActiveRMS",
         "unit": "A",
     }
+    """
+    dtax_params["4.02g"] = {
+        "menu": 4,
+        "register": 2,
+        "dtype": "int16",  # "float",  # 4.02 is 32b but only makes sense as i16
+        "signed": True,
+        "factor": 0.01 * DRIVE_CURRENT_MAX_1401,  # 0.1,  # The drive unit seems 0.1A
+        "scale": True,
+        "desc": "Motor active current DRIVE_CURRENT_MAX_140x 0.01 ",
+        "default": 0,  # i32 err, f 0.0 ?
+        "getter": "get_currentActiveRMS",
+        "unit": "A",
+    }
+    dtax_params["4.02p"] = {
+        "menu": 4,
+        "register": 2,
+        "dtype": "int16",  # "float",  # 4.02 is 32b but only makes sense as i16
+        "signed": True,
+        "factor": 0.01 * DRIVE_CURRENT_MAX_1402,  # 0.1,  # The drive unit seems 0.1A
+        "scale": True,
+        "desc": "Motor active current DRIVE_CURRENT_MAX_140x 0.01 ",
+        "default": 0,  # i32 err, f 0.0 ?
+        "getter": "get_currentActiveRMS",
+        "unit": "A",
+    }
+    """
     dtax_params["4.17"] = {
         "menu": 4,
         "register": 17,
@@ -551,6 +599,32 @@ class dtax:
         "getter": "get_currentReactiveRMS",
         "unit": "A",
     }
+    """
+    dtax_params["4.17g"] = {
+        "menu": 4,
+        "register": 17,
+        "dtype": "int16",  # "float",  # 4.17 is 32b same as 4.01/2
+        "signed": True,
+        "factor": 0.01 * DRIVE_CURRENT_MAX_1401,  # 0.1,  # 1.0,  #
+        "scale": True,
+        "desc": "Motor reactive current DRIVE_CURRENT_MAX_140x 0.01 ",
+        "default": 1,  # i32 err f 0?
+        "getter": "get_currentReactiveRMS",
+        "unit": "A",
+    }
+    dtax_params["4.17p"] = {
+        "menu": 4,
+        "register": 17,
+        "dtype": "int16",  # "float",  # 4.17 is 32b same as 4.01/2
+        "signed": True,
+        "factor": 0.01 * DRIVE_CURRENT_MAX_1402,  # 0.1,  # 1.0,  #
+        "scale": True,
+        "desc": "Motor reactive current DRIVE_CURRENT_MAX_140x 0.01 ",
+        "default": 1,  # i32 err f 0?
+        "getter": "get_currentReactiveRMS",
+        "unit": "A",
+    }
+    """
     dtax_params["4.24g"] = {
         "menu": 4,
         "register": 24,
