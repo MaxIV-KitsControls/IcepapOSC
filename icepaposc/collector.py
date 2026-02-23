@@ -35,7 +35,7 @@ import modbus_tk.defines as cst
 from modbus_tk import modbus_tcp
 
 ##from .dtax import dtax
-from dtax import dtax
+from .dtax import dtax
 from types import MethodType
 
 SIGNAL_GETTER_MAP = [
@@ -354,10 +354,12 @@ class IceDtaxDescriptor(IcePAPDescriptor):
     # def __init__(self, host, port, timeout):
     def __init__(self, icepap_controller, hostname):
         host = hostname
+        print(hostname)
         self.host1 = host.split(";")[0]
         self.host2 = host.split(";")[1]
         # Get the icepap
-        self.icepap_system = icepap_controller
+        super().__init__(icepap_controller, hostname)
+        ## self.icepap_system = icepap_controller
         ##self.port = port
         # since you need to connect to an icepap,
         # use that in the machine where the moxa address is the same for all epus
