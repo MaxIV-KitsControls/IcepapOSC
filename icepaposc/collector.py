@@ -483,7 +483,7 @@ class IceDtaxDescriptor(IcePAPDescriptor):
         if rpss is None:
             return 0.0
         sqrt2 = 1.4142
-        return sqrt2 * 1e-3 * ke * abs(rpss) / 60.0
+        return sqrt2 * 1e-3 * ke * abs(rpss) * 60.0
 
     def generic_read(self, addr, attr):
         par = attr
