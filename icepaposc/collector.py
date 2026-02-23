@@ -448,6 +448,7 @@ class IceDtaxDescriptor(IcePAPDescriptor):
         else:
             inductance = 19.700
         inductancel2l = inductance  # * 2
+        inductanceph2ph = inductance  # * 2
         polespairs = 3
         sqrt3 = 1.732
         """
