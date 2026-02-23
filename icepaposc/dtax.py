@@ -422,7 +422,7 @@ class dtax:
     dtax_params["1.39"] = {
         "menu": 1,
         "register": 39,
-        "dtype": "int32",  #
+        "dtype": "int16",  # "int32",  #
         "signed": True,
         "factor": 0.1 * speedFactor,  # ??
         "scale": True,
@@ -436,9 +436,10 @@ class dtax:
         "register": 1,
         "dtype": "int16",  # "int32",  # but it is a 32b param so somethign is wrong?
         "signed": True,
-        "factor": 1.0 * speedFactor,  # but could be 0.1 ??
+        # "factor": 1.0 * speedFactor,  # but could be 0.1 ??
+        "factor": 0.1 * speedFactor,  # but could be 0.1 ??
         "scale": True,
-        "desc": "Final speed reference speed_max_rpm",
+        "desc": "Final speed reference speed_max_rpm 0.1",
         "default": 1,  # ?i16 65535, i32, f err
         "getter": "get_speedReference",
         "unit": "rpm",
@@ -448,7 +449,7 @@ class dtax:
         "register": 3,
         "dtype": "int16",  # "int32",  # but it is a 32b param so somethign is wrong?
         "signed": True,
-        "factor": 1.0 * speedFactor,  # but could be 0.1 ??
+        "factor": 0.1 * speedFactor,  # but could be 0.1 ??
         "scale": True,
         "desc": "Pre ramp speed reference speed_max_rpm",
         "default": 1,  # ?i16 65535, i32, f err
@@ -460,7 +461,7 @@ class dtax:
         "register": 1,
         "dtype": "int16",  # "int32",  # but it is a 32b param so somethign is wrong?
         "signed": True,
-        "factor": 1.0 * speedFactor,  # but could be 0.1 ??
+        "factor": 0.1 * speedFactor,  # but could be 0.1 ??
         "scale": True,
         "desc": "Post ramp speed reference speed_max_rpm",
         "default": 1,  # ?i16 65535, i32, f err
@@ -472,7 +473,7 @@ class dtax:
         "register": 22,
         "dtype": "int16",  # "int32",  # but it is a 32b param so somethign is wrong?
         "signed": True,
-        "factor": 1.0 * speedFactor,  # but could be 0.1 ??
+        "factor": 0.1 * speedFactor,  # but could be 0.1 ??
         "scale": True,
         "desc": "Hard speed reference speed_max_rpm",
         "default": 1,  # ?i16 65535, i32, f err
@@ -482,9 +483,10 @@ class dtax:
     dtax_params["3.27"] = {
         "menu": 3,
         "register": 27,
-        "dtype": "float",  # 3.27 is a 32bpar but maybe int32 0.1
+        "dtype": "int16",  # "float",  # 3.27 is a 32bpar but maybe int32 0.1
         "signed": True,
-        "factor": 1.0 * speedFactor,  # but maybe0.1,  # ??
+        # "factor": 1.0 * speedFactor,  # but maybe0.1,  # ??
+        "factor": 0.1 * speedFactor,  # but maybe0.1,  # ??
         "scale": True,
         "desc": "Drive shaft encoder speed feedback, 40.0krpm",
         "default": 1,  # ?9.94e-32 as f works, others not
@@ -494,25 +496,13 @@ class dtax:
     dtax_params["15.03"] = {
         "menu": 15,
         "register": 3,
-        "dtype": "float",  # 3.27 is a 32bpar but maybe int32 0.1
+        "dtype": "int16",  # 3.27 is a 32bpar but maybe int32 0.1
         "signed": True,
-        "factor": 1.0 * speedFactor,  # but maybe0.1,  # ??
+        "factor": 0.1 * speedFactor,  # but maybe0.1,  # ??
         "scale": True,
         "desc": "Drive encoder slot1 speed feedback, 40.0krpm",
         "default": 1,  # ?9.94e-32 as f works, others not
         "getter": "get_speedFeedbackSl1",
-        "unit": "rpm",
-    }
-    dtax_params["16.03"] = {
-        "menu": 16,
-        "register": 3,
-        "dtype": "float",  # 3.27 is a 32bpar but maybe int32 0.1
-        "signed": True,
-        "factor": 1.0 * speedFactor,  # but maybe0.1,  # ??
-        "scale": True,
-        "desc": "Drive encoder slot2 speed feedback, 40.0krpm",
-        "default": 1,  # ?9.94e-32 as f works, others not
-        "getter": "get_speedFeedbackSl2",
         "unit": "rpm",
     }
     dtax_params["3.02"] = {
