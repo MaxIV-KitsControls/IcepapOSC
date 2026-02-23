@@ -354,7 +354,6 @@ class IceDtaxDescriptor(IcePAPDescriptor):
     # def __init__(self, host, port, timeout):
     def __init__(self, icepap_controller, hostname):
         host = hostname
-        print(hostname)
         self.host1 = host.split(";")[0]
         self.host2 = host.split(";")[1]
         # Get the icepap
