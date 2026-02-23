@@ -4,7 +4,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [0.10.x]
+## [0.11.x]
+
+### Added
+ - Basic pytest-qt tests.
+ - New options: -sr sample_rate and -dr dump_rate
+ - New signals to simplify encoder testing ([ein/inp/sync][pos/aux]).
+
+### Removed
+
+### Fixed
+* Fix deprecation warning: `UserWarning: pkg_resources is deprecated as an API.`
+ 
+## [0.10.4]
 
 ### Added
  - Reset X button is overloaded and switches behaviour between autopan and 
@@ -27,6 +39,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Ysplitview feature modification to use up space better vertically
 - Fix long description
 - Use pos instead of fpos to read posmeasure, difaxmeasure
+
 ## [0.9.0]
 
 ### Added
@@ -167,5 +180,5 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 [0.7.1]: https://github.com/ALBA-Synchrotron/IcepapOCS/compare/0.6.4...0.7.1
 [0.8.2]: https://github.com/ALBA-Synchrotron/IcepapOCS/compare/0.7.1...0.8.2
 [0.9.0]: https://github.com/ALBA-Synchrotron/IcepapOCS/compare/0.8.2...0.9.0
-[0.10.x]: https://github.com/ALBA-Synchrotron/IcepapOCS/compare/0.9.0...HEAD
-
+[0.10.4]: https://github.com/ALBA-Synchrotron/IcepapOCS/compare/0.9.0...0.10.4
+[0.11.x]: https://github.com/ALBA-Synchrotron/IcepapOCS/compare/0.10.4...HEAD

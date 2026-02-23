@@ -1,0 +1,5 @@
+PyQt5
+icepap>=3.6.1
+pyqtgraph
+#pyqtgraph==0.14.0
+numpy

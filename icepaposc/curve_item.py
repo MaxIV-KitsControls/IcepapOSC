@@ -26,8 +26,16 @@ from pyqtgraph import PlotCurveItem, PlotDataItem
 class CurveItem:
     """Represents a curve to be plotted in a diagram."""
 
-    def __init__(self, subscription_id, driver_addr, sig_name, y_axis,
-                 linecolor, linestyle, linemarker):
+    def __init__(
+        self,
+        subscription_id,
+        driver_addr,
+        sig_name,
+        y_axis,
+        linecolor,
+        linestyle,
+        linemarker,
+    ):
         """
         Initializes an instance of class CurveItem.
 
@@ -50,15 +58,13 @@ class CurveItem:
         self.last_idx_min = 0
         self.last_idx_max = 0
         self.color = linecolor
-        self.pen = {'color': linecolor,
-                    'width': 1,
-                    'style': linestyle}
+        self.pen = {"color": linecolor, "width": 1, "style": linestyle}
         self.symbol = linemarker
         self.curve = None
         self.lock = RLock()
-        self.signature = ''
+        self.signature = ""
         self.update_signature()
-        if sig_name.upper().startswith("POS"): 
+        if sig_name.upper().startswith("POS"):
             self.signal_type = 1
         elif sig_name.upper().startswith("DIF"):
             self.signal_type = 3
@@ -68,67 +74,107 @@ class CurveItem:
             self.signal_type = 3
         else:
             self.signal_type = 0
-        self.corr_factors = [1,0,1,0]
+        self.corr_states = []
+        self.corr_source = "units"
+        self.corr_factors = {}
+        self.corr_scale = 1.0
+        self.corr_offset = 0.0
+        self.corr_active = False
+        self.corr_state_index = None
 
     def update_signature(self):
         """Sets the new value of the signature string."""
-        self.signature = '{}:{}:{}'.format(self.driver_addr,
-                                           self.signal_name,
-                                           self.y_axis)
+        self.signature = "{}:{}:{}".format(
+            self.driver_addr, self.signal_name, self.y_axis
+        )
 
     def create_curve(self):
         """Creates a new plot item."""
         with self.lock:
-            if self.symbol != '':
-                self.curve = PlotDataItem(x=self.array_time,
-                                          y=self.array_val_corr,
-                                          pen=self.pen,
-                                          symbol=self.symbol,
-                                          symbolBrush=QtGui.QBrush(self.color),
-                                          symbolPen=self.color)
+            if self.symbol != "":
+                self.curve = PlotDataItem(
+                    x=self.array_time,
+                    y=self.array_val_corr,
+                    pen=self.pen,
+                    symbol=self.symbol,
+                    symbolBrush=QtGui.QBrush(self.color),
+                    symbolPen=self.color,
+                )
             else:
-                self.curve = PlotDataItem(x=self.array_time,
-                                          y=self.array_val_corr,
-                                          pen=self.pen)
+                self.curve = PlotDataItem(
+                    x=self.array_time, y=self.array_val_corr, pen=self.pen
+                )
 
         return self.curve
 
-    def update_curve(self, time_min, time_max, corr_factors=[]):
+    def update_curve(self, time_min, time_max, corr_state=None):
         """Updates the curve with recent collected data."""
         with self.lock:
-            if corr_factors != None and corr_factors != [] :
-                self.corr_factors = corr_factors
-                self.update_array_val_corr()
+            if corr_state is not None:
+                self.apply_correction_state(corr_state)
             self.last_idx_min = self.get_time_index(time_min)
             self.last_idx_max = self.get_time_index(time_max)
-            self.curve.setData(x=self.array_time[self.last_idx_min:self.last_idx_max],
-                               y=self.array_val_corr[self.last_idx_min:self.last_idx_max])
-                               
+            self.curve.setData(
+                x=self.array_time[self.last_idx_min : self.last_idx_max],
+                y=self.array_val_corr[self.last_idx_min : self.last_idx_max],
+            )
+
     def update_array_val_corr(self):
-        if self.signal_type == 1:
-            self.array_val_corr = [self.corr_factors[0]*x + self.corr_factors[1] for x in self.array_val]
-        elif self.signal_type == 2:
-            self.array_val_corr = [self.corr_factors[2]*x + self.corr_factors[3] for x in self.array_val]
-        elif self.signal_type == 3:
-            self.array_val_corr = [self.corr_factors[0]*x for x in self.array_val]
+        if not self.array_val:
+            self.array_val_corr = []
+            return
+        if not self.corr_active:
+            self.array_val_corr = list(self.array_val)
+        else:
+            self.array_val_corr = [
+                self.corr_scale * x + self.corr_offset for x in self.array_val
+            ]
         self.val_min = min(self.array_val_corr)
         self.val_max = max(self.array_val_corr)
-    
+
     def calculate_val_corr(self, val):
-        if self.signal_type == 1:
-            return val * self.corr_factors[0] + self.corr_factors[1]
-        elif self.signal_type == 2:
-            return val * self.corr_factors[2] + self.corr_factors[3]
-        elif self.signal_type == 3:
-            return val * self.corr_factors[0]
-        else:
+        if not self.corr_active:
             return val
-    
+        return val * self.corr_scale + self.corr_offset
+
+    def set_correction_profile(self, entry):
+        self.corr_source = entry.get("source", "units")
+        self.corr_factors = entry.get("factors", {})
+        self.corr_states = entry.get("states", [])
+        self.corr_state_index = None
+
+    def apply_correction_state(self, state_index):
+        if state_index == self.corr_state_index:
+            return
+        self.corr_state_index = state_index
+        target = None
+        if (
+            state_index is not None
+            and state_index >= 0
+            and state_index < len(self.corr_states)
+        ):
+            target = self.corr_states[state_index]
+        if target is None or target == self.corr_source:
+            self.corr_active = False
+            self.corr_scale = 1.0
+            self.corr_offset = 0.0
+        else:
+            corr = self.corr_factors.get(target)
+            if corr:
+                self.corr_active = True
+                self.corr_scale = float(corr[0])
+                self.corr_offset = float(corr[1])
+            else:
+                self.corr_active = False
+                self.corr_scale = 1.0
+                self.corr_offset = 0.0
+        self.update_array_val_corr()
+
     def calculate_local_min(self, t1, t2):
         idx_min = self.get_time_index(t1)
         idx_max = self.get_time_index(t2)
         return min(self.array_val_corr[idx_min:idx_max])
-                               
+
     def calculate_local_max(self, t1, t2):
         idx_min = self.get_time_index(t1)
         idx_max = self.get_time_index(t2)
@@ -143,8 +189,7 @@ class CurveItem:
                 Otherwise False.
         """
         with self.lock:
-            if self.array_time and \
-                    self.array_time[0] < t < self.array_time[-1]:
+            if self.array_time and self.array_time[0] < t < self.array_time[-1]:
                 return True
         return False
 
@@ -163,16 +208,16 @@ class CurveItem:
         """Store new collected data."""
         with self.lock:
             if not self.array_val:
-                self.val_min = self.val_max = new_data[0][1]
+                self.val_min = self.val_max = self.calculate_val_corr(new_data[0][1])
             for t, v in new_data:
                 self.array_time.append(t)
                 self.array_val.append(v)
                 vcorr = self.calculate_val_corr(v)
                 self.array_val_corr.append(vcorr)
                 if vcorr > self.val_max:
-                    self.val_max = v
+                    self.val_max = vcorr
                 elif vcorr < self.val_min:
-                    self.val_min = v
+                    self.val_min = vcorr
 
     def get_y(self, time_val):
         """
@@ -211,8 +256,14 @@ class CurveItem:
             delta_t = time_max - time_min
             t = time_val - time_min
             idx = int((t / delta_t) * len(self.array_time))
-            while self.array_time[idx] > time_val:
-                idx -= 1
-            while self.array_time[idx] < time_val:
-                idx += 1
+            if idx >= 0 and idx < len(self.array_time):
+                while self.array_time[idx] > time_val:
+                    idx -= 1
+                while self.array_time[idx] < time_val:
+                    idx += 1
+            else:
+                if idx < 0:
+                    idx = 0
+                else:
+                    idx = len(self.array_time) - 1
             return idx

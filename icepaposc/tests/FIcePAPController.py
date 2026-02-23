@@ -1,20 +1,23 @@
 from numpy import random
 import collections
 import weakref
+import time
+
 
 class FIcePAPController:
     """
     Fake IcePAP motor controller class.
     Implememnts only needed functionality for icepaposc
     """
+
     ALL_AXES_VALID = set([r * 10 + i for r in range(16) for i in range(1, 9)])
 
     def __init__(self, host, port=5000, timeout=3, auto_axes=False, **kwargs):
         print("FIC __init__")
-        log_name = '{0}.IcePAPController'.format(__name__)
+        log_name = "{0}.IcePAPController".format(__name__)
         # self.log = logging.getLogger(log_name)
 
-        #self._comm = IcePAPCommunication(host, port, timeout)
+        # self._comm = IcePAPCommunication(host, port, timeout)
 
         self._aliases = {}
         self._axes = {}
@@ -23,7 +26,7 @@ class FIcePAPController:
 
         if auto_axes:
             for axis in self.find_axes(only_alive=True):
-                #self._axes[axis] = IcePAPAxis(self, axis)
+                # self._axes[axis] = IcePAPAxis(self, axis)
                 # print("FIC __init__", axis)
                 self._axes[axis] = FIcePAPAxis(self, axis)
         # print("FIC __init__ ended")
@@ -36,7 +39,7 @@ class FIcePAPController:
             return [self[i] for i in item]
         if item not in self._axes:
             if item not in self.ALL_AXES_VALID:
-                raise ValueError('Bad axis value.')
+                raise ValueError("Bad axis value.")
             self._axes[item] = IcePAPAxis(self, item)
         return self._axes[item]
 
@@ -53,17 +56,15 @@ class FIcePAPController:
             self._aliases.pop(alias)
 
     def __repr__(self):
-        return '{}({}:{})'.format(type(self).__name__,
-                                  self.host, self.port)
+        return "{}({}:{})".format(type(self).__name__, self.host, self.port)
 
     def __str__(self):
-        msg = 'IcePAPController connected ' \
-              'to {}:{}'.format(self.host, self.port)
+        msg = "IcePAPController connected " "to {}:{}".format(self.host, self.port)
         return msg
 
-# -----------------------------------------------------------------------------
-#                       Properties
-# -----------------------------------------------------------------------------
+    # -----------------------------------------------------------------------------
+    #                       Properties
+    # -----------------------------------------------------------------------------
     @property
     def host(self):
         return self._host
@@ -71,7 +72,8 @@ class FIcePAPController:
     @property
     def port(self):
         return self._port
-    '''
+
+    """
     @host.setter
     def host(self, host):
         self.host = host
@@ -79,7 +81,8 @@ class FIcePAPController:
     @port.setter
     def port(self, port):
         self.port = port
-    '''
+    """
+
     @property
     def axes(self):
         """
@@ -89,7 +92,16 @@ class FIcePAPController:
         """
         axes = list(self._axes.keys())
         axes.sort()
-        return axes 
+        return axes
+
+    def get_pos(self, axis, ptype):
+        return random.rand()
+
+    def get_enc(self, enc):
+        return random.rand() + 100
+
+    def get_fpos(self, axis, ptype):
+        return random.rand()
 
     def find_axes(self, only_alive=False):
         # Take the list of racks present in the system
@@ -104,7 +116,7 @@ class FIcePAPController:
         axes.append(4)
         if only_alive:
             pass
-        '''
+        """
         for i in range(16):
             if (racks_present & rack_mask << i) > 0:
                 # Take the motors presents for a rack.
@@ -122,8 +134,9 @@ class FIcePAPController:
                     if (drvs & drv_mask << j) > 0:
                         axis_nr = i * 10 + j + 1
                         axes.append(axis_nr)
-        '''
+        """
         return axes
+
 
 class FIcePAPAxis:
     """
@@ -131,6 +144,7 @@ class FIcePAPAxis:
     IcePAP axis. The methods here implemented correspond to those
     at the axis level.
     """
+
     def __init__(self, ctrl, axis_nr):
         ref = weakref.ref(ctrl)
         self._ctrl = ref()
@@ -143,11 +157,11 @@ class FIcePAPAxis:
         #     raise RuntimeError(msg)
 
     def __repr__(self):
-        return '{}({})'.format(type(self).__name__, self._axis_nr)
+        return "{}({})".format(type(self).__name__, self._axis_nr)
 
     def __str__(self):
-        return 'IcePAPAxis {} on {}'.format(self._axis_nr, self._ctrl)
-    
+        return "IcePAPAxis {} on {}".format(self._axis_nr, self._ctrl)
+
     @property
     def axis(self):
         """
@@ -166,7 +180,7 @@ class FIcePAPAxis:
         :return: int
         """
         # return int(self.send_cmd('?ADDR')[0])
-        return self._axis_nr 
+        return self._axis_nr
 
     @property
     def active(self):
@@ -200,7 +214,7 @@ class FIcePAPAxis:
         # return int(self.send_cmd('?STATUS')[0], 16)
         return 0
 
-    def get_cfg(self, parameter=''):
+    def get_cfg(self, parameter=""):
         """
         Get the current configuration for one or all parameters (IcePAP user
         manual pag. 54).
@@ -209,13 +223,61 @@ class FIcePAPAxis:
         :return: dict
         """
         cfg = collections.OrderedDict()
-        cfg['ANSTEP'] = 400
-        cfg['TGTENC'] = "AbsEnc"
-        cfg['SHFTENC'] = "NONE"
+        cfg["ANSTEP"] = 400
+        cfg["ANTURN"] = 1
+        cfg["TGTENC"] = "AbsEnc"
+        cfg["SHFTENC"] = "NONE"
         return cfg
 
     @property
-    def pos(self):
+    def pos(self, val="AXIS"):
+        """
+        Read the axis nominal position pointer (IcePAP user manual pag. 108).
+
+        :return: int
+        """
+        # return self.get_pos('AXIS')
+        # current time (seconds since epoch)
+        now = time.time()
+
+        # get current localtime as struct_time
+        local = time.localtime(now)
+
+        # compute midnight today
+        midnight_today = time.mktime(
+            (
+                local.tm_year,
+                local.tm_mon,
+                local.tm_mday,
+                0,
+                0,
+                0,
+                local.tm_wday,
+                local.tm_yday,
+                local.tm_isdst,
+            )
+        )
+
+        # midnight of yesterday
+        midnight_yesterday = midnight_today - 86400  # 24 * 60 * 60
+
+        # seconds elapsed since yesterday midnight
+        seconds_since_yesterday = now - midnight_yesterday
+
+        return self._axis_nr + seconds_since_yesterday
+
+    def get_pos(self, vtype):
+        """
+        Read the default velocity (see get_velocity method).
+
+        :return: float
+        """
+        if vtype:
+            pass
+        return 1000.0 + random.rand()
+
+    @property
+    def pos_axis(self):
         """
         Read the axis nominal position pointer (IcePAP user manual pag. 108).
 
@@ -243,7 +305,6 @@ class FIcePAPAxis:
         """
         # return self.get_pos('SHFTENC')
         return self._axis_nr + random.rand()
-    
 
     @property
     def pos_tgtenc(self):
@@ -262,7 +323,7 @@ class FIcePAPAxis:
 
         :return: int
         """
-        return self._axis_nr + random.rand()        
+        return self._axis_nr + random.rand()
 
     @property
     def pos_absenc(self):
@@ -271,7 +332,7 @@ class FIcePAPAxis:
 
         :return: int
         """
-        return self._axis_nr + random.rand()        
+        return self._axis_nr + random.rand()
 
     @property
     def pos_inpos(self):
@@ -280,7 +341,7 @@ class FIcePAPAxis:
 
         :return: int
         """
-        return self._axis_nr + random.rand()        
+        return self._axis_nr + random.rand()
 
     @property
     def pos_motor(self):
@@ -289,7 +350,7 @@ class FIcePAPAxis:
 
         :return: int
         """
-        return self._axis_nr + random.rand()        
+        return self._axis_nr + random.rand()
 
     @property
     def pos_ctrlenc(self):
@@ -298,25 +359,7 @@ class FIcePAPAxis:
 
         :return: int
         """
-        return self._axis_nr + random.rand()        
-
-    @property
-    def pos_motor(self):
-        """
-        Read the tgtenc register (IcePAP user manual pag. 108).
-
-        :return: int
-        """
-        return self._axis_nr + random.rand()        
-
-    @property
-    def pos_measure(self):
-        """
-        Read the tgtenc register (IcePAP user manual pag. 108).
-
-        :return: int
-        """
-        return self._axis_nr + random.rand()        
+        return self._axis_nr + random.rand()
 
     @property
     def pos_measure(self):
@@ -337,7 +380,17 @@ class FIcePAPAxis:
         """
         # return self.get_pos('SHFTENC')
         return self._axis_nr + random.rand()
-    
+
+    def get_enc(self, vtype):
+        """
+        Read the default velocity (see get_velocity method).
+
+        :return: float
+        """
+        if vtype:
+            pass
+        return 1000.0 + random.rand()
+
     @property
     def enc_tgtenc(self):
         """
@@ -355,7 +408,7 @@ class FIcePAPAxis:
 
         :return: int
         """
-        return self._axis_nr + random.rand() + 100        
+        return self._axis_nr + random.rand() + 100
 
     @property
     def enc_absenc(self):
@@ -364,7 +417,7 @@ class FIcePAPAxis:
 
         :return: int
         """
-        return self._axis_nr + random.rand() + 100        
+        return self._axis_nr + random.rand() + 100
 
     @property
     def enc_inpos(self):
@@ -373,7 +426,7 @@ class FIcePAPAxis:
 
         :return: int
         """
-        return self._axis_nr + random.rand() + 100        
+        return self._axis_nr + random.rand() + 100
 
     @property
     def enc_motor(self):
@@ -382,7 +435,7 @@ class FIcePAPAxis:
 
         :return: int
         """
-        return self._axis_nr + random.rand() + 100        
+        return self._axis_nr + random.rand() + 100
 
     @property
     def enc_ctrlenc(self):
@@ -391,7 +444,7 @@ class FIcePAPAxis:
 
         :return: int
         """
-        return self._axis_nr + random.rand() + 100        
+        return self._axis_nr + random.rand() + 100
 
     @property
     def enc_motor(self):
@@ -400,7 +453,7 @@ class FIcePAPAxis:
 
         :return: int
         """
-        return self._axis_nr + random.rand() + 100        
+        return self._axis_nr + random.rand() + 100
 
     @property
     def enc_measure(self):
@@ -409,7 +462,7 @@ class FIcePAPAxis:
 
         :return: int
         """
-        return self._axis_nr + random.rand() + 100        
+        return self._axis_nr + random.rand() + 100
 
     @property
     def meas_vcc(self):
@@ -418,7 +471,7 @@ class FIcePAPAxis:
 
         :return: float
         """
-        return self._axis_nr + random.rand() + 300  
+        return self._axis_nr + random.rand() + 300
 
     @property
     def meas_vm(self):
@@ -427,7 +480,7 @@ class FIcePAPAxis:
 
         :return: float
         """
-        return self._axis_nr + random.rand() + 100  
+        return self._axis_nr + random.rand() + 100
 
     @property
     def meas_i(self):
@@ -436,7 +489,7 @@ class FIcePAPAxis:
 
         :return: float
         """
-        return self._axis_nr + random.rand() + 100  
+        return self._axis_nr + random.rand() + 100
 
     @property
     def meas_ia(self):
@@ -445,7 +498,7 @@ class FIcePAPAxis:
 
         :return: float
         """
-        return self._axis_nr + random.rand() + 100  
+        return self._axis_nr + random.rand() + 100
 
     @property
     def meas_ib(self):
@@ -454,7 +507,7 @@ class FIcePAPAxis:
 
         :return: float
         """
-        return self._axis_nr + random.rand() + 100  
+        return self._axis_nr + random.rand() + 100
 
     @property
     def state_present(self):
@@ -626,7 +679,7 @@ class FIcePAPAxis:
         :return: int
         """
         return 0
-    
+
     @property
     def velocity_current(self):
         """
@@ -645,10 +698,9 @@ class FIcePAPAxis:
         if vtype:
             pass
         return 1000.0 + random.rand()
-    
-    
 
-'''
+
+"""
             [('PosAxis', self._getter_pos_axis),
              ('PosTgtenc', self._getter_pos_tgtenc),
              ('PosShftenc', self._getter_pos_shftenc),
@@ -682,4 +734,4 @@ class FIcePAPAxis:
              ('MeasVm', self._getter_meas_vm),
              ('VelCurrent', self._getter_vel_current),
              ('VelMotor', self._getter_vel_motor)]
-'''
+"""

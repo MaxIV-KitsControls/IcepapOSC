@@ -37,6 +37,8 @@ class Settings:
     # Settings for auto save.
     SAVING_INTERVAL_MIN = 1  # [Minutes]
     SAVING_INTERVAL_MAX = 24 * 60  # [Minutes]
+    LEGEND_DECIMALS_MIN = 0
+    LEGEND_DECIMALS_MAX = 9
 
     def __init__(self):
         """Initializes an instance of class Settings."""
@@ -59,6 +61,7 @@ class Settings:
         self.use_append = False
         self.saving_interval = 5  # [Minutes]
         self.saving_folder = user_path
+        self.legend_decimals = 6
 
         self.conf_file = os.path.join(base_folder, "settings.ini")
         self._read_file()
@@ -73,6 +76,8 @@ class Settings:
                                      fallback=self.dump_rate)
         self.default_x_axis_len = conf.getint('gui', 'default_x_axis_len',
                                               fallback=self.default_x_axis_len)
+        self.legend_decimals = conf.getint('gui', 'legend_decimals',
+                                           fallback=self.legend_decimals)
         self.use_auto_save = conf.getboolean('auto_save', 'use',
                                              fallback=self.use_auto_save)
         self.use_append = conf.getboolean('auto_save', 'append',
@@ -97,6 +102,7 @@ class Settings:
         if 'gui' not in conf:
             conf.add_section('gui')
         conf.set('gui', 'default_x_axis_len', str(self.default_x_axis_len))
+        conf.set('gui', 'legend_decimals', str(self.legend_decimals))
 
         if 'auto_save' not in conf:
             conf.add_section('auto_save')
