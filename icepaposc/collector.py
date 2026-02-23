@@ -420,9 +420,12 @@ class IceDtaxDescriptor(IcePAPDescriptor):
         else:
             resistance_phase = 0.75
         resistance_line2line = resistance_phase  # *2
+        resistance = resistance_phase  # *2
         if result is None:
             return 0.0
-        return resistance_line2line * abs(result)
+        # return resistance_line2line * abs(result)
+        sqrt3 = 1.732
+        return sqrt3 * 0.5 * resistance * abs(result)
 
     def get_voltagelmotor(self, addr):
         par = "4.01"
@@ -434,17 +437,20 @@ class IceDtaxDescriptor(IcePAPDescriptor):
         )
         par = "3.02"
         self.digitax_get_parameter(addr, self.d.dtax_params[par])
-        rpms = self.digitaxDecodeFrame(
+        rpss = self.digitaxDecodeFrame(
             self.d.dtax_params[par],
             scale=self.d.dtax_params[par]["scale"],
             force_not_raw=True,
         )
         if self.NotFlexpes and addr in [1, 2, 3, 4]:
-            inductance = 99.2  # mh #5.24
+            # inductance = 99.2  # mh #5.24
+            inductance = 33.664  # 99.2  # mh #5.24
         else:
             inductance = 19.700
         inductancel2l = inductance  # * 2
         polespairs = 3
+        sqrt3 = 1.732
+        """
         result = (
             2
             * 3.14159
@@ -456,6 +462,8 @@ class IceDtaxDescriptor(IcePAPDescriptor):
             * (self.d.speedFactor)
             * curr
         )
+        """
+        result = sqrt3 * 2 * 3.14159 * inductanceph2ph * 1e-3 * polespairs * rpss * curr
         if result is None:
             return 0.0
         return abs(result)
@@ -463,7 +471,7 @@ class IceDtaxDescriptor(IcePAPDescriptor):
     def get_voltagekmotor(self, addr):
         par = "3.02"
         self.digitax_get_parameter(addr, self.d.dtax_params[par])
-        rpms = self.digitaxDecodeFrame(
+        rpss = self.digitaxDecodeFrame(
             self.d.dtax_params[par],
             scale=self.d.dtax_params[par]["scale"],
             force_not_raw=True,
@@ -472,9 +480,10 @@ class IceDtaxDescriptor(IcePAPDescriptor):
             ke = 147  # 5.17 v/krpm
         else:
             ke = 98
-        if rpms is None:
+        if rpss is None:
             return 0.0
-        return 1e-3 * ke * abs(rpms) * (1 / self.d.speedFactor)
+        sqrt2 = 1.4142
+        return sqrt2 * 1e-3 * ke * abs(rpss) / 60.0
 
     def generic_read(self, addr, attr):
         par = attr
