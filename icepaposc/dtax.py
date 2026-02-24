@@ -172,6 +172,175 @@ class dtax:
         "getter": "get_polePairs",
         "unit": "",
     }
+    dtax_params["2.02"] = {
+        "menu": 2,
+        "register": 2,
+        "dtype": "int16",
+        "signed": False,
+        "factor": 1.0,
+        "scale": True,
+        "desc": "Ramp enable",
+        "default": 0,
+        "getter": "get_confRampEnabled",
+        "unit": "b",
+    }
+    dtax_params["2.38"] = {
+        "menu": 2,
+        "register": 38,
+        "dtype": "int16",
+        "signed": False,
+        "factor": 0.1,
+        "scale": True,
+        "desc": "Inertia compensation torque",
+        "default": 0,
+        "getter": "get_torqueInertiaCompensation",
+        "unit": "%",
+    }
+    dtax_params["3.18"] = {
+        "menu": 3,
+        "register": 18,
+        "dtype": "int16",
+        "signed": False,
+        "factor": 0.1,
+        "scale": True,
+        "desc": "Inertia compensation torque",
+        "default": 0,
+        "getter": "get_inertiaMotorNLoad",
+        "unit": "kg*cm2",
+    }
+    dtax_params["3.19"] = {
+        "menu": 3,
+        "register": 19,
+        "dtype": "int16",
+        "signed": False,
+        "factor": 0.1,
+        "scale": True,
+        "desc": "compliance angle 0.1 deg",
+        "default": 0,
+        "getter": "get_angleCompliance",
+        "unit": "kg*cm2",
+    }
+    dtax_params["3.20"] = {
+        "menu": 3,
+        "register": 20,
+        "dtype": "int16",
+        "signed": False,
+        "factor": 1,
+        "scale": True,
+        "desc": "Bandwidth Hz",
+        "default": 0,
+        "getter": "get_bandwidth",
+        "unit": "Hz",
+    }
+    dtax_params["3.21"] = {
+        "menu": 3,
+        "register": 21,
+        "dtype": "int16",
+        "signed": False,
+        "factor": 1,
+        "scale": True,
+        "desc": "Damping factor",
+        "default": 0,
+        "getter": "get_dampingFactor",
+        "unit": "a.u.",
+    }
+    dtax_params["3.25"] = {
+        "menu": 3,
+        "register": 25,
+        "dtype": "int16",
+        "signed": False,
+        "factor": 0.1,
+        "scale": True,
+        "desc": "Encoder phasing angle",
+        "default": 0,
+        "getter": "get_angleEncoderPhasing",
+        "unit": "deg",
+    }
+    dtax_params["3.34"] = {
+        "menu": 3,
+        "register": 34,
+        "dtype": "int16",
+        "signed": False,
+        "factor": 1,
+        "scale": True,
+        "desc": "Shaft encoder lines per rev",
+        "default": 0,
+        "getter": "get_linesPerRevShaftEncoder",
+        "unit": "",
+    }
+    dtax_params["3.42"] = {
+        "menu": 3,
+        "register": 42,
+        "dtype": "int16",
+        "signed": False,
+        "factor": 1,
+        "scale": True,
+        "desc": "Drive encoder slidign window filter time ms",
+        "default": 0,
+        "getter": "get_timeWindowFilterShaftEncoder",
+        "unit": "ms",
+    }
+    dtax_params["5.26"] = {
+        "menu": 5,
+        "register": 26,
+        "dtype": "int16",
+        "signed": False,
+        "factor": 1,
+        "scale": True,
+        "desc": "High dynamic performance enable",
+        "default": 0,
+        "getter": "get_modeHighDynamicOn",
+        "unit": "",
+    }
+    dtax_params["5.31"] = {
+        "menu": 5,
+        "register": 31,
+        "dtype": "int16",
+        "signed": False,
+        "factor": 1,
+        "scale": True,
+        "desc": "Voltage controller gain",
+        "default": 0,
+        "getter": "get_voltageKp",
+        "unit": "",
+    }
+    dtax_params["13.10"] = {
+        "menu": 13,
+        "register": 10,
+        "dtype": "int16",
+        "signed": False,
+        "factor": 1,
+        "scale": True,
+        "desc": "Position controller mode",
+        "default": 0,
+        "getter": "get_confPositionControllerMode",
+        "unit": "",
+    }
+    dtax_params["13.09"] = {
+        "menu": 13,
+        "register": 9,
+        "dtype": "int16",
+        "signed": False,
+        "factor": 0.01,
+        "scale": True,
+        "desc": "Position controller kp",
+        "default": 0,
+        "getter": "get_positionKp",
+        "unit": "rads-1/rad",
+    }
+    dtax_params["13.12"] = {
+        "menu": 13,
+        "register": 12,
+        "dtype": "int16",
+        "signed": False,
+        "factor": 1,
+        "scale": True,
+        "desc": "Position controller speed clamp",
+        "default": 0,
+        "getter": "get_speedClampPositionController",
+        "unit": "rpm",
+    }
+
     dtax_params["0.36"] = {
         "menu": 0,
         "register": 36,
@@ -201,21 +370,94 @@ class dtax:
         "register": 32,
         "dtype": "int16",
         "signed": False,
-        "factor": 0.01,  # not exactly sqrt2
+        "factor": 0.01,
         "scale": True,
         "desc": "Motor Kt torque constant, 0 to 500.00 NmA-1 (240 1.6)",
         "default": 240,  # 1.6 for p and 2.4 for g
         "getter": "get_kt",
         "unit": "Nm/A",
     }
+    dtax_params["5.33"] = {
+        "menu": 5,
+        "register": 33,
+        "dtype": "int16",
+        "signed": False,
+        "factor": 0.001,
+        "scale": True,
+        "desc": "Motor Ke bemf constant",
+        "default": 240,  # 1.6 for p and 2.4 for g
+        "getter": "get_ke",
+        "unit": "V/rpm",
+    }
+    dtax_params["4.15"] = {
+        "menu": 4,
+        "register": 15,
+        "dtype": "int16",
+        "signed": False,
+        "factor": 1,
+        "scale": True,
+        "desc": "Motor thermal time constant",
+        "default": 240,  # 1.6 for p and 2.4 for g
+        "getter": "get_thermalTimeConstant",
+        "unit": "s",
+    }
+    dtax_params["4.05"] = {
+        "menu": 4,
+        "register": 5,
+        "dtype": "int16",
+        "signed": False,
+        # "factor": 0.1 * USER_CURRENT_MAX_1401 * 0.01,  # res 0.1A
+        "factor": 1,  # res 0.1A
+        "scale": True,
+        "desc": "Motoring current limit 0.1",
+        "default": 903.0,  # 3k for 13.545# 300.0
+        "getter": "get_currentLimitMotoring",
+        "units": "%",
+    }
+    dtax_params["4.06"] = {
+        "menu": 4,
+        "register": 6,
+        "dtype": "int16",
+        "signed": False,
+        # "factor": 0.1 * USER_CURRENT_MAX_1401 * 0.01,  # res 0.1A
+        "factor": 1,  # res 0.1A
+        "scale": True,
+        "desc": "Regen current limit 0.1",
+        "default": 903.0,  # 3k for 13.545# 300.0
+        "getter": "get_currentLimitRegen",
+        "units": "%",
+    }
+    dtax_params["4.07"] = {
+        "menu": 4,
+        "register": 7,
+        "dtype": "int16",
+        "signed": False,
+        # "factor": 0.1 * USER_CURRENT_MAX_1401 * 0.01,  # res 0.1A
+        "factor": 1,  # res 0.1A
+        "scale": True,
+        "desc": "Symmetrical current limit 0.1",
+        "default": 903.0,  # 3k for 13.545# 300.0
+        "getter": "get_currentLimitSym",
+        "units": "%",
+    }
+    dtax_params["4.18"] = {
+        "menu": 4,
+        "register": 18,
+        "dtype": "int16",
+        "signed": False,
+        # "factor": 0.1 * USER_CURRENT_MAX_1401 * 0.01,  # res 0.1A
+        "factor": 1,  # res 0.1A
+        "scale": True,
+        "desc": "Overriding current limit 0.1",
+        "default": 903.0,  # 3k for 13.545# 300.0
+        "getter": "get_currentLimitOverriding",
+        "units": "%",
+    }
     dtax_params["0.06g"] = {
         "menu": 0,
         "register": 6,
         "dtype": "int16",
         "signed": False,
-        # "factor": (MOTOR_CURRENT_RATED_MAX_1401 * MOTOR_CURRENT_LIMIT_MAX_1401 * 0.01)
-        # * 0.01
-        # * 0.1,
         "factor": 0.1 * USER_CURRENT_MAX_1401 * 0.01,  # res 0.1A
         "scale": True,
         "desc": "Symmetrical current limit in % of CLM res 0.1",
@@ -310,6 +552,54 @@ class dtax:
         "default": 6.42,  # 238 i16
         "getter": "get_currentRatedMotor",
         "unit": "A",
+    }
+    dtax_params["5.08"] = {
+        "menu": 5,
+        "register": 8,
+        "dtype": "int16",  #
+        "signed": False,
+        "factor": 0.1,  #
+        "scale": True,
+        "desc": "Motor rated speed",
+        "default": 6.42,  # 238 i16
+        "getter": "get_speedRatedMotor",
+        "unit": "rpm",
+    }
+    dtax_params["5.09"] = {
+        "menu": 5,
+        "register": 9,
+        "dtype": "int16",  #
+        "signed": False,
+        "factor": 1,  #
+        "scale": True,
+        "desc": "Motor rated voltage",
+        "default": 6.42,  # 238 i16
+        "getter": "get_voltageRatedMotor",
+        "unit": "V",
+    }
+    dtax_params["5.24"] = {
+        "menu": 5,
+        "register": 24,
+        "dtype": "int16",  #
+        "signed": False,
+        "factor": 0.001,  #
+        "scale": True,
+        "desc": "Motor phase inductance",
+        "default": 6.42,  # 238 i16
+        "getter": "get_inductanceMotor",
+        "unit": "mH",
+    }
+    dtax_params["5.17"] = {
+        "menu": 5,
+        "register": 17,
+        "dtype": "int16",  #
+        "signed": False,
+        "factor": 0.1,  #
+        "scale": True,
+        "desc": "Stator resistance",
+        "default": 6.42,  # 238 i16
+        "getter": "get_resistanceMotor",
+        "unit": "Ohm",
     }
     dtax_params["5.01"] = {
         "menu": 5,
