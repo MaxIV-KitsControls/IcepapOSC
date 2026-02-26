@@ -377,6 +377,12 @@ class IceDtaxDescriptor(IcePAPDescriptor):
         self.master = modbus_tcp.TcpMaster(host=self.host2, port=self.PortModbus)
         self.master.set_verbose(False)
         self.master.set_timeout(self.TimeOut)
+        self.dtaxPossibleDrivers = [1, 2, 3, 4, 5, 6, 7, 8]
+        self.detectedDtaxDrivers = []
+        self.dtaxDrivers = {}
+        self.getDtaxHWConfig()
+        self.dtaxDrivers = self.getDtaxDetectedDrivers()
+        #
         for n, p in self.d.dtax_params.items():
             if "getter" in p:
                 pname = p["getter"].split("_")[1]
@@ -396,6 +402,34 @@ class IceDtaxDescriptor(IcePAPDescriptor):
             ]
         )
         self.sig_list = list(self.sig_getters.keys())
+
+    def getDtaxHWConfig():
+        for addr in self.dtaxPossibleDrivers:
+            self.dtaxDrivers.update(
+                {
+                    "addr": addr,
+                    "r": res,
+                    "l": ind,
+                    "drimax": drimax,
+                    "imotorrated": imotorrated,
+                    "kt": kt,
+                    "ke": ke,
+                    "pufactor": pufactor,
+                    "pcfactor": pcfactor,
+                    "kc": kc,
+                }
+            )
+
+    def getDtaxDetectedDrivers(self):
+        drivers = []
+        for dr in self.dtaxDrivers:
+            drivers.append(dr["addr"])
+        return drivers
+
+    def getDtaxDriver(self, addr):
+        for dr in self.dtaxDrivers:
+            if dr["addr"] == addr:
+                return dr
 
     def getExtraSpeedFactorFromRPM(self, addr):
         # rps is configured by default (not rpms). If units, change dtax
