@@ -382,6 +382,8 @@ class IceDtaxDescriptor(IcePAPDescriptor):
         self.dtaxDrivers = []
         self.dtaxDrivers = self.getIDDtaxHWConfig()
         self.detectedDtaxDrivers = self.getDtaxDetectedDrivers()
+        self.NotFlexpes = not self.idFlexpesDetect(self.dtaxDrivers)
+
         for n, p in self.d.dtax_params.items():
             if "getter" in p:
                 pname = p["getter"].split("_")[1]
@@ -402,10 +404,24 @@ class IceDtaxDescriptor(IcePAPDescriptor):
         )
         self.sig_list = list(self.sig_getters.keys())
 
+    def idFlexpesDetect(self, drivers):
+        if len(drivers) == 2:  # and 1 in drivers and 2 in drivers:
+            if (drivers[0]["addr"] == 1 or drivers[0]["addr"] == 2) and (
+                drivers[1]["addr"] == 0 or drivers[1]["addr"] == 1
+            ):
+                return True
+        else:
+            return False
+
     def getIDDtaxHWConfig(self):
         dtaxDrivers = []
         for addr in self.dtaxPossibleDrivers:
-            cfg = self.getDtaxHWConfig(addr)
+            # If driver is not reachable it may not be present (Flexpes has only 2)
+            try:
+                cfg = self.getDtaxHWConfig(addr)
+            except e as Exception:
+                print(Exception)
+                continue
             dtaxDrivers.append(cfg)
         return dtaxDrivers
 
@@ -508,7 +524,7 @@ class IceDtaxDescriptor(IcePAPDescriptor):
         for dr in self.dtaxDrivers:
             if dr["addr"] == addr:
                 return dr
-        return {} 
+        return {}
 
     def getExtraSpeedFactorFromRPM(self, addr):
         # rps is configured by default (not rpms). If units, change dtax
