@@ -7,6 +7,7 @@ from typing import Callable, Dict, Optional, Sequence, Tuple
 
 ScaleOffset = Tuple[float, float]
 FactorsMap = Dict[str, ScaleOffset]
+BuildInfo = Optional[Dict[str, object]]
 
 
 @dataclass
@@ -14,7 +15,8 @@ class DeviceProfile:
     name: str
     states: Sequence[str]
     build_factors: Callable[
-        [object, int, str, Optional[Sequence[ScaleOffset]]], Tuple[str, FactorsMap]
+        [object, int, str, Optional[Sequence[ScaleOffset]], BuildInfo],
+        Tuple[str, FactorsMap],
     ]
 
 
@@ -52,7 +54,11 @@ IPAP_STEPS_SOURCES = [
 
 
 def _build_ipap(
-    icepap_system, addr, signal_name, manual: Optional[Sequence[ScaleOffset]]
+    icepap_system,
+    addr,
+    signal_name,
+    manual: Optional[Sequence[ScaleOffset]],
+    build_info: BuildInfo = None,
 ):
     # Build correction factors for a signal using IcePAP config + optional manual overrides.
     source = "units"
@@ -305,9 +311,13 @@ def _build_ipap(
 
 
 def _ipap_build(
-    icepap_system, addr, signal_name, manual: Optional[Sequence[ScaleOffset]]
+    icepap_system,
+    addr,
+    signal_name,
+    manual: Optional[Sequence[ScaleOffset]],
+    build_info: BuildInfo = None,
 ):
-    return _build_ipap(icepap_system, addr, signal_name, manual)
+    return _build_ipap(icepap_system, addr, signal_name, manual, build_info)
 
 
 # Default correction profile for IcePAP signals.

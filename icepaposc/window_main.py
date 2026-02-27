@@ -269,6 +269,7 @@ class WindowMain(QtWidgets.QMainWindow):
         self._corr_state = -1
         self._corr_entries = {}
         self._manual_factors = [1.0, 0.0, 1.0, 0.0]
+        self._corr_build_info = None
         self._corr_state_changed = False
         corr_values = None
         if isinstance(corr, (list, tuple)) and len(corr) == 4:
@@ -285,6 +286,11 @@ class WindowMain(QtWidgets.QMainWindow):
             self._txt_enccorr_a_focus_lost()
             self._txt_enccorr_b_focus_lost()
         self._manual_factors = self._read_manual_factors()
+
+    def set_correction_build_info(self, build_info):
+        """Sets extra build info for correction profiles and rebuilds entries."""
+        self._corr_build_info = build_info
+        self._update_correction_entries()
 
     def _init_collector(self, host, port, timeout, icepap_controller):
         """Initializes the data collector."""
@@ -710,7 +716,9 @@ class WindowMain(QtWidgets.QMainWindow):
     def _corr_key(self, driver_addr, signal_name):
         return "{}:{}".format(driver_addr, signal_name).lower()
 
-    def _build_profile_entry(self, driver_addr, signal_name, manual=None):
+    def _build_profile_entry(
+        self, driver_addr, signal_name, manual=None, build_info=None
+    ):
         # Build a per-signal correction profile entry using the current profile.
         entry = {
             "source": "units",
@@ -730,7 +738,7 @@ class WindowMain(QtWidgets.QMainWindow):
             if icepap_system is None:
                 icepap_system = self.collector.icepap_system
             source, factors = self._corr_profile.build_factors(
-                icepap_system, driver_addr, signal_name, manual_pairs
+                icepap_system, driver_addr, signal_name, manual_pairs, build_info
             )
             entry.update(
                 {
@@ -761,7 +769,10 @@ class WindowMain(QtWidgets.QMainWindow):
     def _register_correction_entry(self, curve_item):
         # Register a new correction entry; extend the global state list if needed.
         entry = self._build_profile_entry(
-            curve_item.driver_addr, curve_item.signal_name, manual=self._manual_factors
+            curve_item.driver_addr,
+            curve_item.signal_name,
+            manual=self._manual_factors,
+            build_info=self._corr_build_info,
         )
         if entry.get("factors"):
             new_states = [k for k in entry["factors"].keys() if k not in self._state_list]
@@ -781,7 +792,10 @@ class WindowMain(QtWidgets.QMainWindow):
     def _update_correction_entries(self):
         for ci in self.curve_items:
             entry = self._build_profile_entry(
-                ci.driver_addr, ci.signal_name, manual=self._manual_factors
+                ci.driver_addr,
+                ci.signal_name,
+                manual=self._manual_factors,
+                build_info=self._corr_build_info,
             )
             self._corr_entries[self._corr_key(ci.driver_addr, ci.signal_name)] = entry
             ci.set_correction_profile(entry)
