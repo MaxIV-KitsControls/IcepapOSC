@@ -379,10 +379,9 @@ class IceDtaxDescriptor(IcePAPDescriptor):
         self.master.set_timeout(self.TimeOut)
         self.dtaxPossibleDrivers = [1, 2, 3, 4, 5, 6, 7, 8]
         self.detectedDtaxDrivers = []
-        self.dtaxDrivers = {}
-        self.getDtaxHWConfig()
-        self.dtaxDrivers = self.getDtaxDetectedDrivers()
-        #
+        self.dtaxDrivers = []
+        self.getIDDtaxHWConfig()
+        self.detectedDtaxDrivers = self.getDtaxDetectedDrivers()
         for n, p in self.d.dtax_params.items():
             if "getter" in p:
                 pname = p["getter"].split("_")[1]
@@ -403,22 +402,99 @@ class IceDtaxDescriptor(IcePAPDescriptor):
         )
         self.sig_list = list(self.sig_getters.keys())
 
-    def getDtaxHWConfig():
+    def getIDDtaxHWConfig(self):
         for addr in self.dtaxPossibleDrivers:
-            self.dtaxDrivers.update(
-                {
-                    "addr": addr,
-                    "r": res,
-                    "l": ind,
-                    "drimax": drimax,
-                    "imotorrated": imotorrated,
-                    "kt": kt,
-                    "ke": ke,
-                    "pufactor": pufactor,
-                    "pcfactor": pcfactor,
-                    "kc": kc,
-                }
-            )
+            cfg = self.getDtaxHWConfig(addr)
+            self.dtaxDrivers.append(cfg)
+
+    def getDtaxHWConfig(self, addr):
+        par = "11.32"  # Driver hw parameter
+        try:
+            p = self.d.dtax_params[par]
+        except:
+            raise
+        self.digitax_get_parameter(addr, p)
+        driver_i_rated_max = self.digitaxDecodeFrame(
+            self.d.dtax_params[par],
+            scale=self.d.dtax_params[par]["scale"],
+            force_not_raw=False,
+        )
+        par = "5.07"  # Motor i rated
+        try:
+            p = self.d.dtax_params[par]
+        except:
+            raise
+        self.digitax_get_parameter(addr, p)
+        motor_i_rated = self.digitaxDecodeFrame(
+            self.d.dtax_params[par],
+            scale=self.d.dtax_params[par]["scale"],
+            force_not_raw=False,
+        )
+        kc = 1.72 * driver_i_rated_max
+        current_pu = kc / motor_i_rated
+        pu_factor = 0.1 * current_pu * 0.01  # 65433 res 0.1A
+        # per_cent_factor = 0.1 * 0.01 * motor_i_rated
+        per_cent_factor = 0.1
+
+        par = "5.24"  # motor indcutance 0.001mH
+        try:
+            p = self.d.dtax_params[par]
+        except:
+            raise
+        self.digitax_get_parameter(addr, p)
+        ind = self.digitaxDecodeFrame(
+            self.d.dtax_params[par],
+            scale=self.d.dtax_params[par]["scale"],
+            force_not_raw=False,
+        )
+        par = "5.17"  # stator resistance 0.1ohm
+        try:
+            p = self.d.dtax_params[par]
+        except:
+            raise
+        self.digitax_get_parameter(addr, p)
+        res = self.digitaxDecodeFrame(
+            self.d.dtax_params[par],
+            scale=self.d.dtax_params[par]["scale"],
+            force_not_raw=False,
+        )
+        par = "5.32"  # kt 0.01 NmA-1 (0.1NA-1)
+        try:
+            p = self.d.dtax_params[par]
+        except:
+            raise
+        self.digitax_get_parameter(addr, p)
+        kt = self.digitaxDecodeFrame(
+            self.d.dtax_params[par],
+            scale=self.d.dtax_params[par]["scale"],
+            force_not_raw=False,
+        )
+        par = "5.33"  # ke Vkrpm-1
+        try:
+            p = self.d.dtax_params[par]
+        except:
+            raise
+        self.digitax_get_parameter(addr, p)
+        ke = self.digitaxDecodeFrame(
+            self.d.dtax_params[par],
+            scale=self.d.dtax_params[par]["scale"],
+            force_not_raw=False,
+        )
+        ret = {
+            "addr": addr,
+            "r": res,
+            "l": ind,
+            "drimax": driver_i_rated_max,
+            "imotorrated": motor_i_rated,
+            "kt": kt,
+            "ke": ke,
+            "pufactor": pu_factor,
+            "pcfactor": per_cent_factor,
+            "kc": kc,
+            "current_pu": current_pu,
+        }
+        # print(ret)
+        return ret
 
     def getDtaxDetectedDrivers(self):
         drivers = []
@@ -430,6 +506,7 @@ class IceDtaxDescriptor(IcePAPDescriptor):
         for dr in self.dtaxDrivers:
             if dr["addr"] == addr:
                 return dr
+        return {} 
 
     def getExtraSpeedFactorFromRPM(self, addr):
         # rps is configured by default (not rpms). If units, change dtax
@@ -449,10 +526,11 @@ class IceDtaxDescriptor(IcePAPDescriptor):
         result = self.digitaxDecodeFrame(
             self.d.dtax_params[par], scale=self.d.dtax_params[par]["scale"]
         )
-        if self.NotFlexpes and addr in [1, 2, 3, 4]:
-            resistance_phase = 48.2  # 5.17
-        else:
-            resistance_phase = 0.75
+        resistance_phase = self.getDtaxDriver(addr)["r"]
+        # if self.NotFlexpes and addr in [1, 2, 3, 4]:
+        #    resistance_phase = 48.2  # 5.17
+        # else:
+        #    resistance_phase = 0.75
         resistance_line2line = resistance_phase  # *2
         resistance = resistance_phase  # *2
         if result is None:
@@ -476,11 +554,12 @@ class IceDtaxDescriptor(IcePAPDescriptor):
             scale=self.d.dtax_params[par]["scale"],
             force_not_raw=True,
         )
-        if self.NotFlexpes and addr in [1, 2, 3, 4]:
-            # inductance = 99.2  # mh #5.24
-            inductance = 33.664  # 99.2  # mh #5.24
-        else:
-            inductance = 19.700
+        inductance = self.getDtaxDriver(addr)["l"]
+        # if self.NotFlexpes and addr in [1, 2, 3, 4]:
+        #    # inductance = 99.2  # mh #5.24
+        #    inductance = 33.664  # 99.2  # mh #5.24
+        # else:
+        #    inductance = 19.700
         inductancel2l = inductance  # * 2
         inductanceph2ph = inductance  # * 2
         polespairs = 3
@@ -511,10 +590,11 @@ class IceDtaxDescriptor(IcePAPDescriptor):
             scale=self.d.dtax_params[par]["scale"],
             force_not_raw=True,
         )
-        if self.NotFlexpes and addr in [1, 2, 3, 4]:
-            ke = 147  # 5.17 v/krpm
-        else:
-            ke = 98
+        ke = self.getDtaxDriver(addr)["ke"]
+        # if self.NotFlexpes and addr in [1, 2, 3, 4]:
+        #    ke = 147  # 5.17 v/krpm
+        # else:
+        #    ke = 98
         if rpss is None:
             return 0.0
         sqrt2 = 1.4142
