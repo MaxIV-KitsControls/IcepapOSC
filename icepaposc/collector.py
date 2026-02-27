@@ -380,7 +380,7 @@ class IceDtaxDescriptor(IcePAPDescriptor):
         self.dtaxPossibleDrivers = [1, 2, 3, 4, 5, 6, 7, 8]
         self.detectedDtaxDrivers = []
         self.dtaxDrivers = []
-        self.getIDDtaxHWConfig()
+        self.dtaxDrivers = self.getIDDtaxHWConfig()
         self.detectedDtaxDrivers = self.getDtaxDetectedDrivers()
         for n, p in self.d.dtax_params.items():
             if "getter" in p:
@@ -403,9 +403,11 @@ class IceDtaxDescriptor(IcePAPDescriptor):
         self.sig_list = list(self.sig_getters.keys())
 
     def getIDDtaxHWConfig(self):
+        dtaxDrivers = []
         for addr in self.dtaxPossibleDrivers:
             cfg = self.getDtaxHWConfig(addr)
-            self.dtaxDrivers.append(cfg)
+            dtaxDrivers.append(cfg)
+        return dtaxDrivers
 
     def getDtaxHWConfig(self, addr):
         par = "11.32"  # Driver hw parameter
