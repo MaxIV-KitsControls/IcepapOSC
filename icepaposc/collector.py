@@ -675,29 +675,36 @@ class IceDtaxDescriptor(IcePAPDescriptor):
         return result
 
     def get_registerRange(self, addr, startRegistry, numberOfIndexes):
-        try:
-            self.registerTab = self.master.execute(
-                addr,
-                cst.READ_HOLDING_REGISTERS,
-                startRegistry,
-                numberOfIndexes,
-            )
+        # Centralize Modbus errors and allow transient failures to be retried.
+        result = self._modbus_execute(
+            addr, cst.READ_HOLDING_REGISTERS, startRegistry, numberOfIndexes
+        )
+        if result is None:
+            self.registerTab = []
+            return
+        self.registerTab = result
 
-        except ModbusError as exc:
-            Except.re_throw_exception(
-                exc,
-                "modbusPLC.get_registerRange",
-                "modbusPLC.get_registerRange method failed.",
-            )
-        except Exception as exc:
-            if exc.errno == 8:
-                Except.re_throw_exception(
-                    exc,
-                    "modbusPLC.get_registerRange",
-                    "modbusPLC.get_registerRange method failed.",
+    def _modbus_execute(self, addr, function, startRegistry, numberOfIndexes, retries=2):
+        last_exc = None
+        for attempt in range(retries + 1):
+            try:
+                return self.master.execute(
+                    addr, function, startRegistry, numberOfIndexes
                 )
-            else:
-                print("Nocommunication")
+            except ModbusError as exc:
+                last_exc = exc
+            except OSError as exc:
+                last_exc = exc
+            except Exception as exc:
+                last_exc = exc
+            if attempt < retries:
+                time.sleep(0.05)
+        print(
+            "Modbus read failed: addr={}, func={}, start={}, count={}, error={}".format(
+                addr, function, startRegistry, numberOfIndexes, last_exc
+            )
+        )
+        return None
 
     def get_digitax_address_from_menu_register(
         self, menu, register, register_data_type
