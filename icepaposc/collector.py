@@ -135,6 +135,9 @@ class IcePAPDescriptor:
     def get_sig_getters(self):
         return self.sig_getters
 
+    def get_correction_build_info(self):
+        return {"profile": "ipap"}
+
     def subscription_checks(self, icepap_addr, sn, channel):
         cond_1 = sn.endswith("Tgtenc")
         cond_2 = sn.endswith("Shftenc")
@@ -403,6 +406,26 @@ class IceDtaxDescriptor(IcePAPDescriptor):
             ]
         )
         self.sig_list = list(self.sig_getters.keys())
+
+    def get_correction_build_info(self):
+        return {
+            "profile": "dtax",
+            "not_flexpes": bool(self.NotFlexpes),
+            "speed_rps_not_units": bool(self.speedRpsNotUnits),
+            "position_revs_not_units": bool(self.positionRevsNotUnits),
+            "gap_max_addr": 4,
+            "position_mm_per_step_gap": self.d.positionFactorMMGap,
+            "position_mm_per_step_phase": self.d.positionFactorMMPhase,
+            "position_mm_per_step_flexpes": self.d.positionFactorFlexpes,
+            "position_mm_per_rev_gap": self.d.positionRevFactorMMGap,
+            "position_mm_per_rev_phase": self.d.positionRevFactorMMPhase,
+            "position_mm_per_rev_flexpes": self.d.positionRevFactorFlexpes,
+            "speed_factor_rpm": self.d.speedFactorRPM,
+            "speed_factor_rps": self.d.speedFactorRPS,
+            "speed_factor_gap": self.d.speedFactorMMGap,
+            "speed_factor_phase": self.d.speedFactorMMPhase,
+            "speed_factor_flexpes": self.d.speedFactorFlexpes,
+        }
 
     def idFlexpesDetect(self, drivers):
         if len(drivers) == 2:  # and 1 in drivers and 2 in drivers:

@@ -28,7 +28,7 @@ from PyQt5.QtGui import QKeySequence
 from PyQt5.Qt import QClipboard
 from icepap import IcePAPController
 from .collector import Collector
-from .correction_profiles import IPAP_PROFILE
+from .correction_profiles import IPAP_PROFILE, DTAX_PROFILE
 from .dialog_settings import DialogSettings
 from .settings import Settings
 from .axis_time import AxisTime
@@ -225,6 +225,7 @@ class WindowMain(QtWidgets.QMainWindow):
         # Initialize data collector
         if not self.csv_mode:
             self._init_collector(host, port, timeout, icepap_controller)
+            self._configure_correction_profile_from_descriptor()
         else:
             self.collector = None
 
@@ -290,7 +291,8 @@ class WindowMain(QtWidgets.QMainWindow):
     def set_correction_build_info(self, build_info):
         """Sets extra build info for correction profiles and rebuilds entries."""
         self._corr_build_info = build_info
-        self._update_correction_entries()
+        if hasattr(self, "curve_items"):
+            self._update_correction_entries()
 
     def _init_collector(self, host, port, timeout, icepap_controller):
         """Initializes the data collector."""
@@ -310,6 +312,21 @@ class WindowMain(QtWidgets.QMainWindow):
             print(msg)
             QtWidgets.QMessageBox.critical(self, "Create Main Window", msg)
             return
+
+    def _configure_correction_profile_from_descriptor(self):
+        if not self.collector:
+            return
+        build_info = None
+        try:
+            build_info = self.collector.icepap_system.get_correction_build_info()
+        except Exception:
+            build_info = None
+        profile = IPAP_PROFILE
+        if isinstance(build_info, dict) and build_info.get("profile") == "dtax":
+            profile = DTAX_PROFILE
+        self._corr_profile = profile
+        self._state_list = list(self._corr_profile.states)
+        self.set_correction_build_info(build_info)
 
     def _init_plot(self, yrange):
         """Initializes the plot."""

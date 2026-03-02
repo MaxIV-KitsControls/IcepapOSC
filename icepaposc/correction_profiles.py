@@ -320,9 +320,138 @@ def _ipap_build(
     return _build_ipap(icepap_system, addr, signal_name, manual, build_info)
 
 
+def _dtax_group(addr, build_info: Dict[str, object]) -> str:
+    not_flexpes = bool(build_info.get("not_flexpes", True))
+    if not_flexpes:
+        try:
+            addr_i = int(addr)
+        except Exception:
+            addr_i = 0
+        gap_max = int(build_info.get("gap_max_addr", 4))
+        return "gap" if addr_i <= gap_max else "phase"
+    return "flexpes"
+
+
+def _dtax_mm_per_step(build_info: Dict[str, object], group: str) -> Optional[float]:
+    val = build_info.get(f"position_mm_per_step_{group}")
+    try:
+        return float(val)
+    except Exception:
+        return None
+
+
+def _dtax_mm_per_rev(build_info: Dict[str, object], group: str) -> Optional[float]:
+    val = build_info.get(f"position_mm_per_rev_{group}")
+    try:
+        return float(val)
+    except Exception:
+        return None
+
+
+def _build_dtax(
+    icepap_system,
+    addr,
+    signal_name,
+    manual: Optional[Sequence[ScaleOffset]],
+    build_info: BuildInfo = None,
+):
+    info = build_info or {}
+    name = (signal_name or "").lower()
+    if name in IPAP_ECTS_SOURCES or name in IPAP_STEP_SOURCES or name in IPAP_STEPS_SOURCES or name in (
+        "posaxis",
+        "encaxis",
+        "posmeasure",
+        "encmeasure",
+    ):
+        return _build_ipap(icepap_system, addr, signal_name, manual, build_info)
+    factors = {"units": (1.0, 0.0)}
+    source = "units"
+
+    if name.startswith("position"):
+        group = _dtax_group(addr, info)
+        mm_per_step = _dtax_mm_per_step(info, group)
+        mm_per_rev = _dtax_mm_per_rev(info, group)
+        steps_per_mm = 1.0 / mm_per_step if mm_per_step else None
+        steps_per_rev = (
+            (mm_per_rev / mm_per_step)
+            if mm_per_rev and mm_per_step
+            else None
+        )
+
+        base_unit = "mm"
+        if "rev" in name and info.get("position_revs_not_units"):
+            base_unit = "rev"
+        override = info.get("position_units")
+        if override in ("mm", "rev", "steps"):
+            base_unit = override
+
+        if base_unit == "mm":
+            factors["mm"] = (1.0, 0.0)
+            if steps_per_mm:
+                factors["steps"] = (steps_per_mm, 0.0)
+            if mm_per_rev:
+                factors["rev"] = (1.0 / mm_per_rev, 0.0)
+        elif base_unit == "rev":
+            factors["rev"] = (1.0, 0.0)
+            if mm_per_rev:
+                factors["mm"] = (mm_per_rev, 0.0)
+            if steps_per_rev:
+                factors["steps"] = (steps_per_rev, 0.0)
+        elif base_unit == "steps":
+            factors["steps"] = (1.0, 0.0)
+            if mm_per_step:
+                factors["mm"] = (mm_per_step, 0.0)
+            if steps_per_rev:
+                factors["rev"] = (1.0 / steps_per_rev, 0.0)
+
+    elif name.startswith("speed"):
+        group = _dtax_group(addr, info)
+        mm_per_step = _dtax_mm_per_step(info, group)
+        mm_per_rev = _dtax_mm_per_rev(info, group)
+        steps_per_mm = 1.0 / mm_per_step if mm_per_step else None
+        steps_per_rev = (
+            (mm_per_rev / mm_per_step)
+            if mm_per_rev and mm_per_step
+            else None
+        )
+
+        base_unit = "tps" if info.get("speed_rps_not_units", True) else "mm/s"
+        override = info.get("speed_units")
+        if override in ("tps", "mm/s", "steps/s"):
+            base_unit = override
+
+        if base_unit == "tps":
+            factors["tps"] = (1.0, 0.0)
+            if mm_per_rev:
+                factors["mm/s"] = (mm_per_rev, 0.0)
+            if steps_per_rev:
+                factors["steps/s"] = (steps_per_rev, 0.0)
+        elif base_unit == "mm/s":
+            factors["mm/s"] = (1.0, 0.0)
+            if mm_per_rev:
+                factors["tps"] = (1.0 / mm_per_rev, 0.0)
+            if steps_per_mm:
+                factors["steps/s"] = (steps_per_mm, 0.0)
+        elif base_unit == "steps/s":
+            factors["steps/s"] = (1.0, 0.0)
+            if mm_per_step:
+                factors["mm/s"] = (mm_per_step, 0.0)
+            if steps_per_rev:
+                factors["tps"] = (1.0 / steps_per_rev, 0.0)
+
+    return source, factors
+
+
 # Default correction profile for IcePAP signals.
 IPAP_PROFILE = DeviceProfile(
     name="ipap_motor",
     states=["units", "steps", "ects", "mt"],
     build_factors=_build_ipap,
+)
+
+# Correction profile for Digitax (DTAX) signals.
+DTAX_PROFILE = DeviceProfile(
+    name="dtax_motor",
+    states=["units", "steps", "mm", "rev", "steps/s", "mm/s", "tps"],
+    build_factors=_build_dtax,
 )
