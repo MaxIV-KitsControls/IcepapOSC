@@ -371,7 +371,6 @@ def _build_dtax(
     ):
         return _build_ipap(icepap_system, addr, signal_name, manual, build_info)
     factors = {"units": (1.0, 0.0)}
-    source = "units"
 
     if name.startswith("position"):
         group = _dtax_group(addr, info)
@@ -381,29 +380,25 @@ def _build_dtax(
         steps_per_rev = (
             (mm_per_rev / mm_per_step) if mm_per_rev and mm_per_step else None
         )
-
-        base_unit = "steps"
-        if "rev" in name and info.get("position_revs_not_units"):
-            base_unit = "rev"
-        override = info.get("position_units")
-        if override in ("mm", "rev", "steps"):
-            base_unit = override
-
-        if base_unit == "mm":
-            factors["mm"] = (1.0, 0.0)
-            factors["units"] = (1.0, 0.0)
-            if steps_per_mm:
-                factors["steps"] = (steps_per_mm, 0.0)
-            if mm_per_rev:
-                factors["mt"] = (1.0 / mm_per_rev, 0.0)
-        elif base_unit == "rev":
+        #Digitax position is spread across 3 registers, fine (1/2**16) steps, steps and revolutions
+        if "rev" in name.lower():
+            source = "mt"
             factors["mt"] = (1.0, 0.0)
             if mm_per_rev:
                 factors["mm"] = (mm_per_rev, 0.0)
                 factors["units"] = (mm_per_rev, 0.0)
             if steps_per_rev:
                 factors["steps"] = (steps_per_rev, 0.0)
-        elif base_unit == "steps":
+        elif "fine" in name.lower():
+            source = "steps"
+            factors["steps"] = (1.0/(2**16), 0.0)
+            if mm_per_step:
+                factors["mm"] = (mm_per_step/(2**16), 0.0)
+                factors["units"] = (mm_per_step/(2**16), 0.0)
+            if steps_per_rev:
+                factors["mt"] = (1.0 / ((2**16)*steps_per_rev), 0.0)
+        else:
+            source = "mt"
             factors["steps"] = (1.0, 0.0)
             if mm_per_step:
                 factors["mm"] = (mm_per_step, 0.0)
@@ -420,33 +415,13 @@ def _build_dtax(
             (mm_per_rev / mm_per_step) if mm_per_rev and mm_per_step else None
         )
 
-        base_unit = "tps" if info.get("speed_rps_not_units", True) else "mm/s"
-        override = info.get("speed_units")
-        if override in ("tps", "mm/s", "steps/s"):
-            base_unit = override
-
-        if base_unit == "tps":
-            factors["mt"] = (1.0, 0.0)
-            if mm_per_rev:
-                factors["mm"] = (mm_per_rev, 0.0)
-                factors["units"] = (mm_per_rev, 0.0)
-            if steps_per_rev:
-                factors["steps"] = (steps_per_rev, 0.0)
-        elif base_unit == "mm/s":
-            factors["mm"] = (1.0, 0.0)
-            factors["units"] = (1.0, 0.0)
-            if mm_per_rev:
-                factors["mt"] = (1.0 / mm_per_rev, 0.0)
-            if steps_per_mm:
-                factors["steps"] = (steps_per_mm, 0.0)
-        elif base_unit == "steps/s":
-            factors["steps"] = (1.0, 0.0)
-            if mm_per_step:
-                factors["mm"] = (mm_per_step, 0.0)
-                factors["units"] = (mm_per_step, 0.0)
-            if steps_per_rev:
-                factors["mt"] = (1.0 / steps_per_rev, 0.0)
-
+        factors["mt"] = (1.0, 0.0)
+        source = "mt"
+        if mm_per_rev:
+            factors["mm"] = (mm_per_rev, 0.0)
+            factors["units"] = (mm_per_rev, 0.0)
+        if steps_per_rev:
+            factors["steps"] = (steps_per_rev, 0.0)
     return source, factors
 
 

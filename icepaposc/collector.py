@@ -361,22 +361,6 @@ class IceDtaxDescriptor(IcePAPDescriptor):
         self.host2 = host.split(";")[1]
         # Get the icepap
         super().__init__(icepap_controller, hostname)
-        ## self.icepap_system = icepap_controller
-        ##self.port = port
-        # since you need to connect to an icepap,
-        # use that in the machine where the moxa address is the same for all epus
-        if self.host1.lower() in [
-            "10.113.25",
-            "r1-d110710-cab40-ctl-ipap-03.maxiv.lu.se",
-            "r1-d110710-cab40-ctl-ipap-03",
-        ] or self.host2.lower() in [
-            "172.16.166.80",
-        ]:
-            self.NotFlexpes = False
-        else:
-            self.NotFlexpes = True
-        # Get the icepap
-        ## super().__init__(self.host1, self.port, timeout)
         self.master = modbus_tcp.TcpMaster(host=self.host2, port=self.PortModbus)
         self.master.set_verbose(False)
         self.master.set_timeout(self.TimeOut)
@@ -549,18 +533,6 @@ class IceDtaxDescriptor(IcePAPDescriptor):
                 return dr
         return {}
 
-    def getExtraSpeedFactorFromRPM(self, addr):
-        # rps is configured by default (not rpms). If units, change dtax
-        if not self.speedRpsNotUnits:
-            if not self.NotFlexpes:
-                return self.d.extraSpeedFactorFlexpes
-            elif int(addr) <= 4:
-                return self.d.extraSpeedFactorMMGap
-            else:
-                return self.d.extraSpeedFactorMMPhase
-        else:
-            return 1.0
-
     def get_voltagermotor(self, addr):
         par = "4.01"
         self.digitax_get_parameter(addr, self.d.dtax_params[par])
@@ -568,15 +540,10 @@ class IceDtaxDescriptor(IcePAPDescriptor):
             self.d.dtax_params[par], scale=self.d.dtax_params[par]["scale"]
         )
         resistance_phase = self.getDtaxDriver(addr)["r"]
-        # if self.NotFlexpes and addr in [1, 2, 3, 4]:
-        #    resistance_phase = 48.2  # 5.17
-        # else:
-        #    resistance_phase = 0.75
         resistance_line2line = resistance_phase  # *2
         resistance = resistance_phase  # *2
         if result is None:
             return 0.0
-        # return resistance_line2line * abs(result)
         sqrt3 = 1.732
         return sqrt3 * 0.5 * resistance * abs(result)
 
@@ -596,28 +563,10 @@ class IceDtaxDescriptor(IcePAPDescriptor):
             force_not_raw=True,
         )
         inductance = self.getDtaxDriver(addr)["l"]
-        # if self.NotFlexpes and addr in [1, 2, 3, 4]:
-        #    # inductance = 99.2  # mh #5.24
-        #    inductance = 33.664  # 99.2  # mh #5.24
-        # else:
-        #    inductance = 19.700
         inductancel2l = inductance  # * 2
         inductanceph2ph = inductance  # * 2
         polespairs = 3
         sqrt3 = 1.732
-        """
-        result = (
-            2
-            * 3.14159
-            * inductancel2l
-            * 1e-3
-            * polespairs
-            * 60
-            * rpms
-            * (self.d.speedFactor)
-            * curr
-        )
-        """
         result = sqrt3 * 2 * 3.14159 * inductanceph2ph * 1e-3 * polespairs * rpss * curr
         if result is None:
             return 0.0
@@ -632,10 +581,6 @@ class IceDtaxDescriptor(IcePAPDescriptor):
             force_not_raw=True,
         )
         ke = self.getDtaxDriver(addr)["ke"]
-        # if self.NotFlexpes and addr in [1, 2, 3, 4]:
-        #    ke = 147  # 5.17 v/krpm
-        # else:
-        #    ke = 98
         if rpss is None:
             return 0.0
         sqrt2 = 1.4142
@@ -648,22 +593,6 @@ class IceDtaxDescriptor(IcePAPDescriptor):
                 par = par[:-1] + "g"
         attr_name = self.d.dtax_params[par]["getter"].split("_")[1]
         position_factor = 1.0
-        if attr_name.startswith("position"):
-            if not self.NotFlexpes:
-                position_factor = self.d.positionFactorFlexpes
-            elif addr in [1, 2, 3, 4]:
-                position_factor = self.d.positionFactorMMGap
-            else:
-                position_factor = self.d.positionFactorMMPhase
-        if attr_name.startswith("position") and "Rev" in attr_name:
-            if not self.NotFlexpes:
-                position_factor = self.d.positionRevFactorFlexpes
-            elif addr in [1, 2, 3, 4]:
-                position_factor = self.d.positionRevFactorMMGap
-            else:
-                position_factor = self.d.positionRevFactorMMPhase
-        if attr_name.startswith("speed"):
-            position_factor = self.getExtraSpeedFactorFromRPM(addr)
         self.digitax_get_parameter(addr, self.d.dtax_params[par])
         result = self.digitaxDecodeFrame(
             self.d.dtax_params[par],
