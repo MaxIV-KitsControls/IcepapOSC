@@ -352,7 +352,7 @@ class IceDtaxDescriptor(IcePAPDescriptor):
     d = dtax()
     raw = False
     speedRpsNotUnits = True
-    positionRevsNotUnits = False
+    positionRevsNotUnits = True
 
     # def __init__(self, host, port, timeout):
     def __init__(self, icepap_controller, hostname):
@@ -684,7 +684,9 @@ class IceDtaxDescriptor(IcePAPDescriptor):
             return
         self.registerTab = result
 
-    def _modbus_execute(self, addr, function, startRegistry, numberOfIndexes, retries=2):
+    def _modbus_execute(
+        self, addr, function, startRegistry, numberOfIndexes, retries=2
+    ):
         last_exc = None
         for attempt in range(retries + 1):
             try:
